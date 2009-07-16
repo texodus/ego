@@ -1,0 +1,95 @@
+<project name="Ego" default="dist" basedir=".">
+  <description>
+         Ad-hoc Social Network 
+  </description>
+
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+  <property name="jarfile" location="ego.jar"/>
+  <property name="jetty" location="../jetty/lib"/>
+
+  <path id="ego.classpath">
+    <pathelement location="lib/clojure.jar"/>
+    <pathelement location="lib/clojure-contrib.jar"/>
+    <pathelement location="lib/activation.jar"/>
+    <pathelement location="lib/axis-ant.jar"/>
+    <pathelement location="lib/axis.jar"/>
+    <pathelement location="lib/commons-discovery-0.2.jar"/>
+    <pathelement location="lib/commons-logging-1.0.4.jar"/>
+    <pathelement location="lib/jaxrpc.jar"/>
+    <pathelement location="lib/jdbc2_0-stdext.jar"/>
+    <pathelement location="lib/log4j-1.2.8.jar"/>
+    <pathelement location="lib/postgresql-8.3-603.jdbc3.jar"/>
+    <pathelement location="lib/saaj.jar"/>
+    <pathelement location="lib/wsdl4j.jar"/>
+    <pathelement location="lib/mail.jar"/>
+    <pathelement location="lib/xercesImpl.jar"/>
+    <pathelement location="lib/commons-codec-1.3.jar"/>
+    <pathelement location="lib/commons-fileupload-1.2.1.jar"/>
+    <pathelement location="lib/commons-io-1.4.jar"/>
+    <pathelement location="lib/compojure.jar"/>
+    <pathelement location="lib/httpcore-4.0.jar"/>
+    <pathelement location="lib/commons-httpclient-3.1.jar"/>
+    <pathelement location="lib/clj-http-client.jar"/>
+    <pathelement location="lib/servlet-api.jar"/>
+    <pathelement location="lib/jetty.jar"/>
+    <pathelement location="lib/jetty-util.jar"/>
+    <pathelement location="lib/netty-3.1.0.CR1.jar"/>
+    <pathelement location="src"/>
+    <pathelement location="build"/>
+    <pathelement location="keys"/>
+  </path>
+
+  <taskdef resource="axis-tasks.properties" classpathref="ego.classpath" />
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="manifest">
+  <manifest file="${build}/MANIFEST.MF">
+    <attribute name="Built-By" value="Andrew Stein"/>
+    <attribute name="Main-Class" value="org.ego.application"/> 
+    <attribute name="Class-Path" value="clojure.jar clojure-contrib.jar activation.jar axis-ant.jar axis.jar commons-discovery-0.2.jar commons-logging-1.0.4.jar log4j-1.2.8.jar jdbc2_0-stdext.jar postgresql-8.3-603.jdbc3.jar saaj.jar wsdl4j.jar mail.jar xercesImpl.jar jaxrpc.jar	commons-codec-1.3.jar commons-fileupload-1.2.1.jar commons-io-1.4.jar compojure.jar servlet-api.jar jetty.jar jetty-util.jar httpcore-4.0.jar commons-httpclient-3.1.jar clj-http-client.jar netty-3.1.0.CR1.jar" />
+  </manifest>
+  </target>
+
+  <target name="compile_java" depends="init" description="compile the source ">
+    <javac srcdir="${src}" destdir="${build}">
+      <classpath refid="ego.classpath"/>
+    </javac>
+  </target>
+
+  <target name="compile" depends="init, compile_java"  description="Compile Clojure sources.">
+    <copy file="${src}/ego.properties" todir="${build}" />
+    <copy file="${src}/log4j.properties" todir="${build}" />
+    <copy file="${src}/ego.jks" todir="${build}" />
+    <java classname="clojure.lang.Compile" fork="true">
+      <classpath refid="ego.classpath" />
+      <sysproperty key="clojure.compile.path" value="${build}"/>
+      <arg value="org.ego.config"/>
+      <arg value="org.ego.server"/>
+      <arg value="org.ego.xmpp"/>
+      <arg value="org.ego.application"/>
+    </java>
+  </target>
+
+ <target name="dist" depends="compile, manifest" description="generate the distribution" >
+    <mkdir dir="${dist}/lib"/>
+    <jar manifest="${build}/MANIFEST.MF" jarfile="${dist}/lib/ego-${DSTAMP}.jar" basedir="${build}"/>
+    <copy includeemptydirs="false" todir="${dist}/lib">
+      <fileset dir="lib"/>
+    </copy>
+    <copy file="${src}/ego.properties" todir="${dist}/lib" />
+    <copy file="${src}/log4j.properties" todir="${dist}/lib" />
+    <copy file="${src}/ego.jks" todir="${dist}/lib" />
+  </target>
+
+  <target name="clean" description="clean up" >
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>
+
