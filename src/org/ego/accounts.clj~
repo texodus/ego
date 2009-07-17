@@ -1,8 +1,0 @@
-(ns org.ego.accounts
-  (:gen-class)
-  (:import [java.net ServerSocket Socket SocketException InetAddress InetSocketAddress URL]
-           [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
-           [org.apache.log4j Logger])
-  (:require [org.ego.config :as config]
-            [clojure.sql :as sql]))
-

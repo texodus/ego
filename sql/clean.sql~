@@ -1,9 +1,0 @@
-DROP TABLE bands_tags;
-DROP TABLE songs_tags;
-DROP TABLE tags;
-DROP TABLE listening_history;
-DROP TABLE songs;
-DROP TABLE bands;
-DROP TABLE messages;
-DROP TABLE friends;
-DROP TABLE accounts;
