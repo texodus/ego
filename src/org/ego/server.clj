@@ -1,4 +1,4 @@
-52(ns org.ego.server
+(ns org.ego.server
   (:gen-class)
   (:import [java.net InetAddress InetSocketAddress URL]
            [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
@@ -195,6 +195,10 @@
             (. bootstrap (setOption "child.tcpNoDelay" true))
             (. bootstrap (setOption "child.keepAlive" true))
             (. bootstrap (bind (InetSocketAddress. port)))))))
+
+; TODO implement this
+(defn close-channel 
+  [])
 
 (defn stop-server
   "Stop the supplied server"

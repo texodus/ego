@@ -3,7 +3,8 @@
   (:import [org.apache.log4j Logger])
   (:require [org.ego.config :as config]
             [org.ego.server :as server]
-            [org.ego.xmpp :as xmpp]))
+            [org.ego.xmpp :as xmpp]
+            [org.ego.xml :as xml]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -21,7 +22,7 @@
 (defn -main
   [& args]
   (do (. log (info "Starting XMPP Server on port 5222"))
-      (server/create-server 5222 xmpp/get-xmpp-parser)))
+      (server/create-server 5222 #(xml/parse xmpp/process-xmpp xmpp/new-stream-state))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -29,5 +30,5 @@
 
 (defn start-server 
   [] 
-  (let [server (server/create-server 5222 xmpp/get-xmpp-parser)]
+  (let [server (server/create-server 5222 #(xml/parse xmpp/process-xmpp xmpp/new-stream-state))]
     (dosync (ref-set *server* server))))
