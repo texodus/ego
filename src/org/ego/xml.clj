@@ -82,9 +82,10 @@
                                (condp = *count*
                                  0 (server/close-channel)
                                  1 (do (push-chars)
-                                       (set! *stream-state* 
-                                             (stanza-fun ((:content (push-content (peek *stack*) *current*)) 0) 
-                                                         *stream-state*))
+                                       (let [new-state (stanza-fun ((:content (push-content (peek *stack*) *current*)) 0) 
+                                                         *stream-state*)]
+                                         (if (not (nil? new-state))
+                                           (set! *stream-state* new-state)))
                                        (set! *stack* nil)
                                        (set! *current* (struct element))
                                        (set! *state* :between)

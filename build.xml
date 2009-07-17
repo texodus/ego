@@ -1,6 +1,6 @@
-<project name="Ego" default="dist" basedir=".">
+<project name="Ego" default="dist" basedir="." >
   <description>
-         Ad-hoc Social Network 
+         XMPP
   </description>
 
   <property name="src" location="src"/>
@@ -72,6 +72,8 @@
       <arg value="org.ego.config"/>
       <arg value="org.ego.server"/>
       <arg value="org.ego.xmpp"/>
+      <arg value="org.ego.xml"/>
+      <arg value="org.ego.accounts"/>
       <arg value="org.ego.application"/>
     </java>
   </target>
