@@ -19,6 +19,7 @@
 ;;;; SQL
 
 (defn login
+  "Check the login credentials, set online in DB and return the user_id"
   [username password]
   (sql/with-connection dbconf
     (let [user-id (sql/with-query-results rs 
