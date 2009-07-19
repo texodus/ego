@@ -48,7 +48,7 @@
   [content]
   (xml/emit-element content)) 
 
-(defn get-xml-handler
+(defn- get-xml-handler
   [stanza-fun initial-state]
   (let [push-content (fn [e c]
                        (assoc e :content (conj (or (:content e) []) c)))
@@ -86,8 +86,8 @@
                         (set! *count* (dec *count*))
                         (set! *current* (push-content (peek *stack*) *current*))
                         (set! *stack* (pop *stack*))
-                                     (set! *state* :between)
-                                     nil)))
+                        (set! *state* :between)
+                        nil)))
       (characters [ch start length]
                   (when-not (= *state* :chars)
                     (set! *sb* (new StringBuilder)))
