@@ -1,4 +1,4 @@
-(ns org.ego.accounts
+(ns org.ego.db.accounts
   (:gen-class)
   (:import [java.net ServerSocket Socket SocketException InetAddress InetSocketAddress URL]
            [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]

@@ -11,7 +11,7 @@
   (:require [org.ego.config :as config]
             [org.ego.xml :as xml]
             [org.ego.server :as server]
-            [org.ego.accounts :as accounts]))
+            [org.ego.db.accounts :as accounts]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

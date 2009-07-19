@@ -68,14 +68,14 @@
       <arg value="org.ego.server"/>
       <arg value="org.ego.xmpp"/>
       <arg value="org.ego.xml"/>
-      <arg value="org.ego.accounts"/>
+      <arg value="org.ego.db.accounts"/>
       <arg value="org.ego"/>
     </java>
   </target>
 
  <target name="dist" depends="compile, manifest" description="generate the distribution" >
     <mkdir dir="${dist}/lib"/>
-    <jar manifest="${build}/MANIFEST.MF" jarfile="${dist}/lib/ego-${DSTAMP}.jar" basedir="${build}"/>
+    <jar manifest="${build}/MANIFEST.MF" jarfile="${dist}/lib/ego.jar" basedir="${build}"/>
     <copy includeemptydirs="false" todir="${dist}/lib">
       <fileset dir="lib"/>
     </copy>
