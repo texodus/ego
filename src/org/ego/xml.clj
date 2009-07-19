@@ -108,4 +108,4 @@
     (try (.. SAXParserFactory newInstance newSAXParser
              (parse (InputSource. *in*)
                     (get-xml-handler stanza-fun initial-state)))
-         (catch Exception e (. log (debug "Parser closed"))))))
+         (catch Exception e (. log (debug "Parser closed" e))))))

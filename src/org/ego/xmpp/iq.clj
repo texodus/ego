@@ -41,13 +41,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
-;;;; XMPP : iq
+;;;; Process
 
-(defmulti iq (fn [content _] [(-> content :content first :tag) 
+(defmulti process (fn [content _] [(-> content :content first :tag) 
                               (-> content :attrs :type keyword)
                               (-> content :content first :attrs :xmlns)]))
 
-(defmethod iq [:bind :set "urn:ietf:params:xml:ns:xmpp-bind"]
+(defmethod process [:bind :set "urn:ietf:params:xml:ns:xmpp-bind"]
   [content state]
   (let [resource (gen-resource (-> content :content :content :content))]
     (do (xmpplog "assigned resource " resource)
@@ -61,7 +61,7 @@
         (flush)
         (assoc state :resource resource))))
                            
-(defmethod iq [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
+(defmethod process [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
   [content state]
   (do (xmpplog "opened session")
       (xml/emit-element {:tag :iq
@@ -72,7 +72,7 @@
       (flush)
       (assoc state :session true)))
 
-(defmethod iq [:query :get "http://jabber.org/protocol/disco#items"]
+(defmethod process [:query :get "http://jabber.org/protocol/disco#items"]
   [content state]
   (do (xml/emit-element {:tag :iq
                         :attrs {:from (:domain conf)
@@ -84,7 +84,7 @@
       (flush)
       nil))
 
-(defmethod iq [:query :get "http://jabber.org/protocol/disco#info"]
+(defmethod process [:query :get "http://jabber.org/protocol/disco#info"]
   [content state]
   (do (xml/emit-element {:tag :iq
                         :attrs {:from (:domain conf)
@@ -100,7 +100,7 @@
       (flush)
       nil))
 
-(defmethod iq [:query :get "jabber:iq:roster"]
+(defmethod process [:query :get "jabber:iq:roster"]
   [content state]
   (let [friends (accounts/get-friends (:user-id state))]
     (do (xmpplog "requested roster [" (apply str (interpose ", " friends)) "]") 
@@ -117,7 +117,7 @@
       (flush)
       nil)))
 
-(defmethod iq [:ping :get "urn:xmpp:ping"]
+(defmethod process [:ping :get "urn:xmpp:ping"]
   [content state]
   (do (xmpplog "ping!")
       (xml/emit-element {:tag :iq
@@ -128,8 +128,8 @@
       nil))
                                  
 
-(defmethod iq :default
+(defmethod process :default
   [content state]
-  (do (. log (warn (str "IP " (server/get-ip) " sent unknown message - MESSAGE " content)))
+  (do (. log (warn (str "IP " (server/get-ip) " sent unknown IQ " content)))
       nil))
 

@@ -50,17 +50,15 @@
   (do (dosync (alter id-counter inc))
       @id-counter))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
-;;;; XMPP 
+;;;; Process 
 
-(defmulti xmpp (fn [content _] (:tag content)))
+(defmulti process (fn [content _] (:tag content)))
 
-(defmethod xmpp :iq [content state] (iq/iq content state))
+(defmethod process :iq [content state] (iq/process content state))
 
-(defmethod xmpp :stream:stream
+(defmethod process :stream:stream
   [content state]
   (let [id (gen-id)]
     (xmpplog "opened stream " id)
@@ -95,7 +93,7 @@
     (flush)
     (assoc state :open true :id id)))
 
-(defmethod xmpp :starttls
+(defmethod process :starttls
   [content state]
   (do (xmpplog "switched to TLS")
       (xml/emit-element {:tag :proceed
@@ -106,7 +104,7 @@
       (flush)
       (assoc state :ssl true)))
 
-(defmethod xmpp :auth
+(defmethod process :auth
   [content state]
   (condp = (-> content :attrs :mechanism)
     "PLAIN" (let [chars (. (Base64.) (decode (.getBytes (first (:content content)))))
@@ -127,7 +125,7 @@
                     (assoc state :username username :user-id user-id))))
     nil))
 
-(defmethod xmpp :default
+(defmethod process :default
   [content state]
-  (do (. log (warn (str "IP " (server/get-ip) " sent unknown message " content)))
+  (do (. log (warn (str "IP " (server/get-ip) " sent unknown " content)))
       nil))

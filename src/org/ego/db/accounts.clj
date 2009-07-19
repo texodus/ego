@@ -34,6 +34,7 @@
         nil))))
 
 (defn get-friends
+  "Returns a list of jids"
   [user-id]
   (sql/with-connection dbconf
     (sql/with-query-results rs

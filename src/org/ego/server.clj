@@ -27,7 +27,7 @@
 ; ref map for tracking current connections - maps Connections to connection-records
 (def #^{:private true} connections (ref {}))
 
-(defstruct connection-record :buffer :channel :pipeline)
+(defstruct connection-record :buffer :channel :pipeline :wait)
 
 (def *connection*)
 
@@ -68,7 +68,6 @@
                    :buffer (drop (+ off len) (:buffer @connection)))
             temp-chars)))
 
-
 (defn- get-channel-in-reader
   "Creates a Reader from the netty Channel for reading by sax.  Blocks until
    characters are available in the buffer, then modifies provided array and
@@ -78,11 +77,15 @@
     (read [chars off len]
           (let [char-array (loop [return-chars (get-chars connection off len)]
                              (if (zero? (count return-chars))
-                               (do (. Thread (sleep 300))
+                               (do (. Thread (sleep (if (:wait @connection)
+                                                      (:readtimeoutmax conf)
+                                                      (dosync (alter connection assoc :wait true)
+                                                              (:readtimeoutmin conf)))))
                                    (recur (get-chars connection off len)))
                                (do (. log (debug (str "Received from " 
                                                       (. (:channel @connection) getRemoteAddress) 
                                                       " : " return-chars)))
+                                   (dosync (alter connection assoc :wait false))
                                    return-chars)))]
             (loop [ret-chars char-array, index 0]
               (if (zero? (count ret-chars))
@@ -119,7 +122,7 @@
 
 (defn open-channel
   [fun channel pipeline]
-  (let [connection (ref (struct connection-record [] channel pipeline))]
+  (let [connection (ref (struct connection-record [] channel pipeline false))]
     (do (dosync (alter connections assoc channel connection))
         (on-thread #(binding [*out* (get-channel-out-writer connection)
                               *in* (get-channel-in-reader connection)

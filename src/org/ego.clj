@@ -22,7 +22,7 @@
 (defn -main
   [& args]
   (do (. log (info "Starting XMPP Server on port 5222"))
-      (server/create-server 5222 #(xml/parse xmpp/xmpp xmpp/new-stream-state))))
+      (server/create-server 5222 #(xml/parse xmpp/process xmpp/new-stream-state))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -30,5 +30,5 @@
 
 (defn start-server 
   [] 
-  (let [server (server/create-server 5222 #(xml/parse xmpp/xmpp xmpp/new-stream-state))]
+  (let [server (server/create-server 5222 #(xml/parse xmpp/process xmpp/new-stream-state))]
     (dosync (ref-set *server* server))))
