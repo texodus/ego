@@ -6,8 +6,6 @@
   <property name="src" location="src"/>
   <property name="build" location="build"/>
   <property name="dist"  location="dist"/>
-  <property name="jarfile" location="ego.jar"/>
-  <property name="jetty" location="../jetty/lib"/>
 
   <path id="ego.classpath">
     <pathelement location="lib/clojure.jar"/>
@@ -38,10 +36,7 @@
     <pathelement location="lib/netty-3.1.0.CR1.jar"/>
     <pathelement location="src"/>
     <pathelement location="build"/>
-    <pathelement location="keys"/>
   </path>
-
-  <taskdef resource="axis-tasks.properties" classpathref="ego.classpath" />
 
   <target name="init">
     <tstamp/>

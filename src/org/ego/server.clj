@@ -93,41 +93,6 @@
                       (recur (rest ret-chars) (inc index))))))))
     (close [] nil)))
 
-
-
-(comment
-(defn- get-chars
-  "Get chars from the buffer and remove them in one transaction"
-  [connection off len]
-  (dosync (let [temp-chars (apply str (doall (take len (drop off (:buffer @connection)))))]
-            (alter connection assoc
-                   :buffer (drop (+ off len) (:buffer @connection)))
-            temp-chars)))
-
-
-(defn- get-channel-in-reader
-  "Creates a Reader from the netty Channel for reading by sax.  Blocks until
-   characters are available in the buffer, then modifies provided array and
-   returns the length."
-  [connection]
-  (proxy [Reader] []
-    (read [chars off len]
-          (let [char-array (loop [return-chars (get-chars connection off len)]
-                             (if (zero? (count return-chars))
-                               (do (. Thread (sleep 1000))
-                                   (recur (get-chars connection off len)))
-                               (do (. log (debug (str "Received from " 
-                                                      (. (:channel @connection) getRemoteAddress) 
-                                                      " : " return-chars)))
-                                   return-chars)))]
-            (loop [ret-chars char-array, index 0]
-              (if (not (zero? (count ret-chars)))
-                (do (aset chars index (first ret-chars))
-                    (recur (rest ret-chars) (inc index)))))
-            (count char-array)))
-    (close [] nil)))
-)
-
 (defn- get-channel-out-writer
   "Creates a Writer from the netty Channel for writing by the sax handler."
   [connection]
@@ -163,6 +128,7 @@
         (. log (info (str "Channel connected : " (. channel getRemoteAddress)))))))
 
 (defn close-channel
+  "test"
   ([] (close-channel (:channel *connection*)))
   ([channel] (do (dosync (alter (@connections channel) assoc :buffer [:close])
                          (alter connections dissoc channel))
@@ -177,7 +143,7 @@
   "Generates a netty ChannelHandler given a shared ref to a channel-buffer;  a
    channel-buffer ref is necessary to pass characters from the netty messageReceived
    to the sax parser's InputStream"
-  [fun]
+  [fun] 
   (proxy [SimpleChannelHandler] []
     (messageReceived 
      [ctx event]
@@ -187,35 +153,6 @@
     (channelConnected [ctx event] (open-channel fun (. event getChannel) (. ctx getPipeline)))
     (channelDisconnected [ctx event] (close-channel (. event getChannel)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; Handlers
-
-(defn- get-channel-handler
-  "Generates a netty ChannelHandler given a shared ref to a channel-buffer;  a
-   channel-buffer ref is necessary to pass characters from the netty messageReceived
-   to the sax parser's InputStream"
-  [fun]
-  (proxy [SimpleChannelHandler] []
-    (messageReceived
-     [ctx event]
-     (let [msg (strip-lines (. event getMessage))
-           connection (@connections (. event getChannel))]
-       (dosync (alter connection assoc :buffer (conj (:buffer @connection) msg)))))
-    (channelConnected
-     [ctx event]
-     (let [connection (ref (struct connection-record [] (. event getChannel) (. ctx getPipeline)))]
-       (do (dosync (alter connections assoc (. event getChannel) connection))
-           (on-thread #(binding [*out* (get-channel-out-writer connection)
-                                 *in* (get-channel-in-reader connection)
-                                 *connection* connection]
-                                 (fun)))
-           (. log (info (str "Channel connected : " (.. event getChannel getRemoteAddress)))))))
-    (channelDisconnected
-     [ctx event]
-     (do (dosync (alter (@connections (. event getChannel)) assoc :buffer [:close]) ; TODO write a terminating character to the buffer to kill sax parser stream
-                 (alter connections dissoc (. event getChannel)))
-         (. log (info (str "Channel disconnected : " (.. event getChannel getRemoteAddress))))))))
 
 (defn- get-ssl-context
   "Generate an SSLContext for a KeyStore"
@@ -257,8 +194,7 @@
             (addListener (proxy [ChannelFutureListener] []
                            (operationComplete 
                             [future]
-                            (do (. log (debug (str "SSL Handshake finished : " (. future isSuccess)))))))))
-        (flush))))
+                            (do (. log (debug (str "SSL Handshake finished : " (. future isSuccess))))))))))))
 
 (defn get-ip
   "Return the IP for the current connection"
@@ -278,10 +214,6 @@
             (. bootstrap (setOption "child.tcpNoDelay" true))
             (. bootstrap (setOption "child.keepAlive" true))
             (. bootstrap (bind (InetSocketAddress. port)))))))
-
-; TODO implement this
-(defn close-channel 
-  [])
 
 (defn stop-server
   "Stop the supplied server"

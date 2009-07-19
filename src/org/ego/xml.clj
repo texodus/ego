@@ -48,6 +48,54 @@
   [content]
   (xml/emit-element content)) 
 
+(defn get-xml-handler
+  [stanza-fun initial-state]
+  (let [push-content (fn [e c]
+                       (assoc e :content (conj (or (:content e) []) c)))
+        push-chars (fn []
+                     (when (and (= *state* :chars)
+                                (some (complement #(. Character (isWhitespace %))) (str *sb*)))
+                       (set! *current* (push-content *current* (str *sb*)))))]
+    (proxy [DefaultHandler] []
+      (startElement [uri local-name qname #^Attributes atts]
+                    (let [e (struct element 
+                                    (keyword qname)
+                                    (map-attributes atts))]
+                      (if (= (:tag e) :stream:stream)
+                        (set! *stream-state* (stanza-fun e *stream-state*))
+                        (do (push-chars)
+                            (set! *count* (inc *count*))
+                            (set! *stack* (conj *stack* *current*))
+                            (set! *current* e)
+                            (set! *state* :element)
+                            nil))))
+      (endElement [uri local-name q-name]
+                  (condp = *count*
+                    0 (server/close-channel)
+                    1 (do (push-chars)
+                          (let [new-state (stanza-fun ((:content (push-content (peek *stack*) *current*)) 0) 
+                                                      *stream-state*)]
+                            (if (not (nil? new-state))
+                              (set! *stream-state* new-state)))
+                          (set! *stack* nil)
+                          (set! *current* (struct element))
+                          (set! *state* :between)
+                          (set! *sb* nil)
+                          (set! *count* 0))
+                    (do (push-chars)
+                        (set! *count* (dec *count*))
+                        (set! *current* (push-content (peek *stack*) *current*))
+                        (set! *stack* (pop *stack*))
+                                     (set! *state* :between)
+                                     nil)))
+      (characters [ch start length]
+                  (when-not (= *state* :chars)
+                    (set! *sb* (new StringBuilder)))
+                  (let [#^StringBuilder sb *sb*]
+                    (. sb (append ch start length))
+                    (set! *state* :chars))
+                  nil))))
+
 (defn parse
   "Create an XMPP parser for *in* stream"
   [stanza-fun initial-state]
@@ -57,50 +105,7 @@
             *sb* nil
             *count* 0
             *stream-state* initial-state]
-    (.. SAXParserFactory newInstance newSAXParser
-        (parse (InputSource. *in*)
-               (let [push-content (fn [e c]
-                                    (assoc e :content (conj (or (:content e) []) c)))
-                     push-chars (fn []
-                                  (when (and (= *state* :chars)
-                                             (some (complement #(. Character (isWhitespace %))) (str *sb*)))
-                                    (set! *current* (push-content *current* (str *sb*)))))]
-                 (proxy [DefaultHandler] []
-                   (startElement [uri local-name qname #^Attributes atts]
-                                 (let [e (struct element 
-                                                 (keyword qname)
-                                                 (map-attributes atts))]
-                                   (if (= (:tag e) :stream:stream)
-                                     (set! *stream-state* (stanza-fun e *stream-state*))
-                                     (do (push-chars)
-                                         (set! *count* (inc *count*))
-                                         (set! *stack* (conj *stack* *current*))
-                                         (set! *current* e)
-                                         (set! *state* :element)
-                                         nil))))
-                   (endElement [uri local-name q-name]
-                               (condp = *count*
-                                 0 (server/close-channel)
-                                 1 (do (push-chars)
-                                       (let [new-state (stanza-fun ((:content (push-content (peek *stack*) *current*)) 0) 
-                                                         *stream-state*)]
-                                         (if (not (nil? new-state))
-                                           (set! *stream-state* new-state)))
-                                       (set! *stack* nil)
-                                       (set! *current* (struct element))
-                                       (set! *state* :between)
-                                       (set! *sb* nil)
-                                       (set! *count* 0))
-                                 (do (push-chars)
-                                     (set! *count* (dec *count*))
-                                     (set! *current* (push-content (peek *stack*) *current*))
-                                     (set! *stack* (pop *stack*))
-                                     (set! *state* :between)
-                                     nil)))
-                   (characters [ch start length]
-                               (when-not (= *state* :chars)
-                                 (set! *sb* (new StringBuilder)))
-                               (let [#^StringBuilder sb *sb*]
-                                 (. sb (append ch start length))
-                                 (set! *state* :chars))
-                               nil)))))))
+    (try (.. SAXParserFactory newInstance newSAXParser
+             (parse (InputSource. *in*)
+                    (get-xml-handler stanza-fun initial-state)))
+         (catch Exception e (. log (debug "Parser closed"))))))

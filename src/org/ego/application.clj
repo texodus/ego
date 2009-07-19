@@ -21,7 +21,7 @@
 
 (defn -main
   [& args]
-  (do (. log (info "Starting XMPP Server on port 5222"))
+  (do (. log (info "Starting XMPP Server on port 5222 !!!!"))
       (server/create-server 5222 #(xml/parse xmpp/xmpp xmpp/new-stream-state))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -32,11 +32,11 @@
       (server/close-channel)))
 
 (defstruct stream-state-record 
-  :open :ssl :id 
+  :open :ssl :id :stream-count
   :auth :resource :session)
 
 (def new-stream-state (struct stream-state-record 
-                              false false nil 
+                              false false nil 0
                               false nil true))
 
 (def id-counter (ref 1))
@@ -131,7 +131,7 @@
                                             :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}
                                             :content [{:tag :optional}]})])})
     (flush)
-    (assoc state :open true :id id)))
+    (assoc state :open true :id id :stream-count (inc (:stream-count state)))))
 
 (defmethod xmpp :starttls
   [content state]
@@ -139,7 +139,8 @@
       (xml/emit-element {:tag :proceed
                          :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-tls"}})
       (try (server/start-tls)
-           (catch Exception e (close-channel)))
+           (catch Exception e (do (. log (error "SSL failed" e))
+                                  (close-channel))))
       (flush)
       (assoc state :ssl true)))
 
@@ -168,4 +169,3 @@
   [content state]
   (do (. log (warn (str "IP " (server/get-ip) " sent unknown message " content)))
       state))
-
