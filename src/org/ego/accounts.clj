@@ -32,3 +32,11 @@
               (str "UPDATE accounts SET last_login_timestamp = (timestamp 'now') WHERE id = " user-id))
             user-id)
         nil))))
+
+(defn get-friends
+  [user-id]
+  (sql/with-connection dbconf
+    (sql/with-query-results rs
+      [(str "SELECT jid FROM friends "
+            "WHERE account_id = " user-id)]
+      (doall (map :jid rs)))))

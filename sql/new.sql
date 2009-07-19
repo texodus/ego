@@ -38,15 +38,13 @@ CREATE INDEX accounts_id_idx ON accounts USING btree (id);
 
 CREATE TABLE friends (
     account_id bigint NOT NULL,
-    friend_id bigint NOT NULL,
+    jid text NOT NULL,
     registration_date timestamp without time zone DEFAULT 'now' NOT NULL,
-    CONSTRAINT friends_primary_key PRIMARY KEY (account_id, friend_id),
-    CONSTRAINT friends_first_id_foreign FOREIGN KEY (account_id) REFERENCES accounts(id),
-    CONSTRAINT friends_second_id_foreign FOREIGN KEY (friend_id) REFERENCES accounts(id)
+    CONSTRAINT friends_primary_key PRIMARY KEY (account_id, jid),
+    CONSTRAINT friends_first_id_foreign FOREIGN KEY (account_id) REFERENCES accounts(id)
 );
 
 CREATE INDEX friends_first_id_idx ON friends USING btree (account_id);
-CREATE INDEX friends_second_id_idx ON friends USING btree (friend_id);
 
 --------------------------------------------------------------------------------
 --

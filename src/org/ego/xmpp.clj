@@ -32,12 +32,14 @@
       (server/close-channel)))
 
 (defstruct stream-state-record 
-  :open :ssl :id :stream-count
-  :auth :resource :session)
+  :open :ssl :id 
+  :resource :session :username
+  :user-id)
 
 (def new-stream-state (struct stream-state-record 
-                              false false nil 0
-                              false nil true))
+                              false false nil 
+                              nil true nil
+                              nil))
 
 (def id-counter (ref 1))
 
@@ -58,9 +60,10 @@
 ;;;; XMPP : iq
 
 (defmulti iq (fn [content _] [(-> content :content first :tag) 
-                              (-> content :attrs :type keyword)]))
+                              (-> content :attrs :type keyword)
+                              (-> content :content first :attrs :xmlns)]))
 
-(defmethod iq [:bind :set]
+(defmethod iq [:bind :set "urn:ietf:params:xml:ns:xmpp-bind"]
   [content state]
   (let [resource (gen-resource (-> content :content :content :content))]
     (do (xmpplog "assigned resource " resource)
@@ -74,7 +77,7 @@
         (flush)
         (assoc state :resource resource))))
                            
-(defmethod iq [:session :set]
+(defmethod iq [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
   [content state]
   (do (xmpplog "opened session")
       (xml/emit-element {:tag :iq
@@ -85,10 +88,65 @@
       (flush)
       (assoc state :session true)))
 
+(defmethod iq [:query :get "http://jabber.org/protocol/disco#items"]
+  [content state]
+  (do (xml/emit-element {:tag :iq
+                        :attrs {:from (:domain conf)
+                                :id (-> content :attrs :id)
+                                :to (str (:username state) "@" (:domain conf) "/" (:resource state))
+                                :type "result"}
+                        :content [{:tag :query
+                                   :attrs {:xmlns "http://jabber.org/protocol/disco#items"}}]})
+      (flush)
+      nil))
+
+(defmethod iq [:query :get "http://jabber.org/protocol/disco#info"]
+  [content state]
+  (do (xml/emit-element {:tag :iq
+                        :attrs {:from (:domain conf)
+                                :id (-> content :attrs :id)
+                                :to (str (:username state) "@" (:domain conf) "/" (:resource state))
+                                :type "result"}
+                        :content [{:tag :query
+                                   :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
+                                   :content [{:tag :feature
+                                              :attrs {:var "jabber:iq:roster"}}
+                                             {:tag :feature
+                                              :attrs {:var "vcard-temp"}}]}]})
+      (flush)
+      nil))
+
+(defmethod iq [:query :get "jabber:iq:roster"]
+  [content state]
+  (do (xmpplog "requested roster") 
+      (xml/emit-element {:tag :iq
+                         :attrs {:from (:domain conf)
+                                 :id (-> content :attrs :id)
+                                 :to (str (:username state) "@" (:domain conf) "/" (:resource state))
+                                 :type "result"}
+                         :content [{:tag :query
+                                    :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
+                                    :content (for [friend (accounts/get-friends (:user-id state))]
+                                               {:tag :item
+                                                :attrs {:jid friend}})}]})
+      (flush)
+      nil))
+
+(defmethod iq [:ping :get "urn:xmpp:ping"]
+  [content state]
+  (do (xmpplog "ping!")
+      (xml/emit-element {:tag :iq
+                         :attrs {:id (-> content :attrs :id) 
+                                 :from (:domain conf)
+                                 :type "result"}})
+      (flush)
+      nil))
+                                 
+
 (defmethod iq :default
   [content state]
   (do (. log (warn (str "IP " (server/get-ip) " sent unknown message - MESSAGE " content)))
-      state))
+      nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -113,7 +171,7 @@
                                             :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-tls"}
                                             :content [{:tag :required}]})
                                          ; Only offer authentication if the user is not authenticated
-                                         (if (not (state :auth))
+                                         (if (nil? (state :username))
                                            {:tag :mechanisms
                                              :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-sasl"}
                                              :content [{:tag :mechanism
@@ -126,12 +184,12 @@
                                             {:tag :bind
                                              :attrs {:xmlns "urn:ietf:params:sml:ns:xmpp-bind"}
                                              :content [{:tag :required}]})
-                                         (if (state :auth)
+                                         (if (not (nil? (state :username)))
                                            {:tag :session
                                             :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}
                                             :content [{:tag :optional}]})])})
     (flush)
-    (assoc state :open true :id id :stream-count (inc (:stream-count state)))))
+    (assoc state :open true :id id)))
 
 (defmethod xmpp :starttls
   [content state]
@@ -162,10 +220,10 @@
                     (xml/emit-element {:tag :success
                                        :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-sasl"}})
                     (flush)
-                    (assoc state :auth true))))
-    state))
+                    (assoc state :username username :user-id user-id))))
+    nil))
 
 (defmethod xmpp :default
   [content state]
   (do (. log (warn (str "IP " (server/get-ip) " sent unknown message " content)))
-      state))
+      nil))

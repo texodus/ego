@@ -46,7 +46,7 @@
   <target name="manifest">
   <manifest file="${build}/MANIFEST.MF">
     <attribute name="Built-By" value="Andrew Stein"/>
-    <attribute name="Main-Class" value="org.ego.application"/> 
+    <attribute name="Main-Class" value="org.ego"/> 
     <attribute name="Class-Path" value="clojure.jar clojure-contrib.jar activation.jar axis-ant.jar axis.jar commons-discovery-0.2.jar commons-logging-1.0.4.jar log4j-1.2.8.jar jdbc2_0-stdext.jar postgresql-8.3-603.jdbc3.jar saaj.jar wsdl4j.jar mail.jar xercesImpl.jar jaxrpc.jar	commons-codec-1.3.jar commons-fileupload-1.2.1.jar commons-io-1.4.jar compojure.jar servlet-api.jar jetty.jar jetty-util.jar httpcore-4.0.jar commons-httpclient-3.1.jar clj-http-client.jar netty-3.1.0.CR1.jar" />
   </manifest>
   </target>
@@ -69,7 +69,7 @@
       <arg value="org.ego.xmpp"/>
       <arg value="org.ego.xml"/>
       <arg value="org.ego.accounts"/>
-      <arg value="org.ego.application"/>
+      <arg value="org.ego"/>
     </java>
   </target>
 

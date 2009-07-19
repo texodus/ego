@@ -8,6 +8,6 @@ INSERT INTO accounts (username, password, first_name, last_name) VALUES ('joe', 
 INSERT INTO accounts (username, password, first_name, last_name) VALUES ('dan', md5('password'), 'Dan', 'Smith');
 INSERT INTO accounts (username, password, first_name, last_name) VALUES ('andrew', md5('password'), 'Andrew', 'Stein');
 
-INSERT INTO friends (account_id, friend_id) 
+INSERT INTO friends (account_id, jid) 
        VALUES ((SELECT id FROM accounts WHERE username LIKE 'andrew'), 
-       	       (SELECT id FROM accounts WHERE username LIKE 'bob'))
+               'alice@localhost')
