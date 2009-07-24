@@ -1,9 +1,8 @@
-(ns org.ego.config
+(ns org.ego.common
   (:gen-class)
   (:import [java.io FileReader BufferedReader InputStreamReader FileInputStream]
 	   [java.util Properties])
-  (:use [clojure.contrib.str-utils :only (str-join)]
-        [clojure.contrib.test-is])
+  (:use [clojure.contrib.str-utils :only (str-join)])
   (:require [clojure.contrib.sql :as sql]))
 
 (def *application-context* :production)

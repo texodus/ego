@@ -15,13 +15,13 @@
            [org.jboss.netty.logging InternalLoggerFactory Log4JLoggerFactory]
            [org.apache.log4j Logger])
   (:require [clojure.xml :as xml]
-            [org.ego.config :as config]))
+            [org.ego.common :as common]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
 
-(def #^{:private true} conf (config/get-properties "server"))
+(def #^{:private true} conf (common/get-properties "server"))
 (def #^{:private true} log (. Logger (getLogger (str *ns*))))
 
 ; ref map for tracking current connections - maps Connections to connection-records
@@ -40,19 +40,6 @@
   "Remove newlines from a string"
   [text]
   (apply str (filter #(not (or (= (int %) 13) (= (int %) 10))) text)))
-
-(defmulti #^{:private true} channel-write 
-  "Helper function for writing various messages types to a Channel"
-  (fn [x _] (if (.isArray (class x)) :array (class x))))
-(defmethod channel-write java.lang.Integer
-  [channel val]
-  (. channel (write (str (char val)))))
-(defmethod channel-write :array
-  [channel val]
-  (. channel (write (cast String (apply str val)))))
-(defmethod channel-write :default
-  [channel val]
-  (. channel (write (str val))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

@@ -9,7 +9,7 @@
            [clojure.lang LineNumberingPushbackReader]
            [sun.misc BASE64Decoder])
   (:require [clojure.contrib.lazy-xml :as xml]
-            [org.ego.config :as config]
+            [org.ego.common :as common]
             [org.ego.server :as server]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -17,7 +17,7 @@
 ;;;; Common
 
 (def #^{:private true} log (. Logger (getLogger (str *ns*))))
-(def #^{:private true} conf (config/get-properties "server"))
+(def #^{:private true} conf (common/get-properties "server"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

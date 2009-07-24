@@ -64,7 +64,7 @@
     <java classname="clojure.lang.Compile" fork="true">
       <classpath refid="ego.classpath" />
       <sysproperty key="clojure.compile.path" value="${build}"/>
-      <arg value="org.ego.config"/>
+      <arg value="org.ego.common"/>
       <arg value="org.ego.server"/>
       <arg value="org.ego.xmpp"/>
       <arg value="org.ego.xml"/>

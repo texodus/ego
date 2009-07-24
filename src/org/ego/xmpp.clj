@@ -8,7 +8,7 @@
            [org.apache.log4j Logger]
            [org.apache.commons.codec.binary Base64]
            [clojure.lang LineNumberingPushbackReader])
-  (:require [org.ego.config :as config]
+  (:require [org.ego.common :as common]
             [org.ego.xml :as xml]
             [org.ego.server :as server]
             [org.ego.db.accounts :as accounts]
@@ -20,7 +20,7 @@
 ;;;; Common
 
 (def #^{:private true} log (. Logger (getLogger (str *ns*))))
-(def #^{:private true} conf (config/get-properties "server"))
+(def #^{:private true} conf (common/get-properties "server"))
 
 (defn- xmpplog
   [& string]

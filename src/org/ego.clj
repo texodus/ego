@@ -1,7 +1,7 @@
 (ns org.ego
   (:gen-class)
   (:import [org.apache.log4j Logger])
-  (:require [org.ego.config :as config]
+  (:require [org.ego.common :as common]
             [org.ego.server :as server]
             [org.ego.xmpp :as xmpp]
             [org.ego.xml :as xml]))
@@ -10,7 +10,7 @@
 ;;;;
 ;;;; Common
 
-(def #^{:private true} conf (config/get-properties "server"))
+(def #^{:private true} conf (common/get-properties "server"))
 (def #^{:private true} log (. Logger (getLogger (str *ns*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

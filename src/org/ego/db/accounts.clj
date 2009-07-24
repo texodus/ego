@@ -3,7 +3,7 @@
   (:import [java.net ServerSocket Socket SocketException InetAddress InetSocketAddress URL]
            [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
            [org.apache.log4j Logger])
-  (:require [org.ego.config :as config]
+  (:require [org.ego.common :as common]
             [clojure.contrib.sql :as sql]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -11,8 +11,8 @@
 ;;;; Common
 
 (def #^{:private true} log (. Logger (getLogger (str *ns*))))
-(def #^{:private true} conf (config/get-properties "server"))
-(def #^{:private true} dbconf (config/get-properties "database"))
+(def #^{:private true} conf (common/get-properties "server"))
+(def #^{:private true} dbconf (common/get-properties "database"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
