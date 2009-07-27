@@ -1,133 +1,33 @@
 (ns org.ego.server
   (:gen-class)
   (:import [java.net InetAddress InetSocketAddress URL]
-           [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
+           [java.io 
+            InputStreamReader OutputStreamWriter PushbackReader 
+            ByteArrayInputStream Reader Writer OutputStream FileInputStream]
            [java.util.concurrent Executors]
            [java.security KeyStore Security]
            [java.security.cert X509Certificate]
            [javax.net.ssl SSLContext KeyManagerFactory TrustManager SSLEngine]
            [org.jboss.netty.bootstrap ServerBootstrap]
-           [org.jboss.netty.channel SimpleChannelHandler ChannelFutureListener]
+           [org.jboss.netty.channel 
+            SimpleChannelHandler ChannelFutureListener ChannelHandlerContext ChannelStateEvent 
+            ChildChannelStateEvent ExceptionEvent UpstreamMessageEvent DownstreamMessageEvent]
            [org.jboss.netty.channel.socket.nio NioServerSocketChannelFactory]
            [org.jboss.netty.handler.ssl SslHandler]
            [org.jboss.netty.handler.codec.string StringEncoder StringDecoder]
            [org.jboss.netty.handler.codec.frame Delimiters DelimiterBasedFrameDecoder]
-           [org.jboss.netty.logging InternalLoggerFactory Log4JLoggerFactory]
-           [org.apache.log4j Logger])
-  (:require [clojure.xml :as xml]
-            [org.ego.common :as common]))
-
+           [org.jboss.netty.logging InternalLoggerFactory Log4JLoggerFactory])
+  (:use [org.ego.common :only [properties log]]))
+  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
-;;;; Common
+;;;; Channel 
 
-(def #^{:private true} conf (common/get-properties "server"))
-(def #^{:private true} log (. Logger (getLogger (str *ns*))))
+(defstruct connection :ctx :channel)
 
-; ref map for tracking current connections - maps Connections to connection-records
-(def #^{:private true} connections (ref {}))
-
-(defstruct connection-record :buffer :channel :pipeline :wait)
-
-(def *connection*)
-
-(defn- on-thread [f]
-  "Create a new thread to run f"
-  (doto (Thread. #^Runnable f)
-    (.start)))
-
-(defn- strip-lines
-  "Remove newlines from a string"
-  [text]
-  (apply str (filter #(not (or (= (int %) 13) (= (int %) 10))) text)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; Streams
-
-(defn- get-chars
-  "Get chars from the buffer and remove them in one transaction"
-  [connection off len]
-  (dosync (let [temp-chars (if (= :close (-> @connection :buffer first))
-                             [:close]
-                             (apply str (doall (take len (drop off (:buffer @connection))))))]
-            (alter connection assoc
-                   :buffer (drop (+ off len) (:buffer @connection)))
-            temp-chars)))
-
-(defn- get-channel-in-reader
-  "Creates a Reader from the netty Channel for reading by sax.  Blocks until
-   characters are available in the buffer, then modifies provided array and
-   returns the length."
-  [connection]
-  (proxy [Reader] []
-    (read [chars off len]
-          (let [char-array (loop [return-chars (get-chars connection off len)]
-                             (if (zero? (count return-chars))
-                               (do (. Thread (sleep (if (:wait @connection)
-                                                      (:readtimeoutmax conf)
-                                                      (dosync (alter connection assoc :wait true)
-                                                              (:readtimeoutmin conf)))))
-                                   (recur (get-chars connection off len)))
-                               (do (. log (debug (str "Received from " 
-                                                      (. (:channel @connection) getRemoteAddress) 
-                                                      " : " return-chars)))
-                                   (dosync (alter connection assoc :wait false))
-                                   return-chars)))]
-            (loop [ret-chars char-array, index 0]
-              (if (zero? (count ret-chars))
-                (count char-array)
-                (if (= (first ret-chars) :close)
-                  -1 ; reached end of stream
-                  (do (aset chars index (first ret-chars))
-                      (recur (rest ret-chars) (inc index))))))))
-    (close [] nil)))
-
-(defn- get-channel-out-writer
-  "Creates a Writer from the netty Channel for writing by the sax handler."
-  [connection]
-  (let [write-buffer (ref "")]
-    (proxy [Writer] []
-      (write [val]
-             (dosync (alter write-buffer str val)))
-      (flush []
-             (do (. log (debug (str "Flushed to " (.getRemoteAddress (:channel @connection)) " : " @write-buffer)))
-                 (. (:channel @connection)
-                    (write (dosync (let [text @write-buffer]
-                                     (ref-set write-buffer "")
-                                     text))))))
-      (close [] nil))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; Handlers
-
-(defn get-ip
-  "Return the IP for the current connection"
-  []
-  (. (:channel @*connection*) getRemoteAddress))
-
-(defn open-channel
-  [fun channel pipeline]
-  (let [connection (ref (struct connection-record [] channel pipeline false))]
-    (do (dosync (alter connections assoc channel connection))
-        (on-thread #(binding [*out* (get-channel-out-writer connection)
-                              *in* (get-channel-in-reader connection)
-                              *connection* connection]
-                      (fun)))
-        (. log (info (str "Channel connected : " (. channel getRemoteAddress)))))))
-
-(defn close-channel
-  "test"
-  ([] (close-channel (:channel *connection*)))
-  ([channel] (do (dosync (alter (@connections channel) assoc :buffer [:close])
-                         (alter connections dissoc channel))
-                 (. channel close)
-                 (. log (info (str "Channel disconnected : " (. channel getRemoteAddress)))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; Handlers
+(def #^{:private true
+        :doc "Thread-local handle keeps netty conneciton information"}
+     *connection*)
 
 (defn- get-channel-handler
   "Generates a netty ChannelHandler given a shared ref to a channel-buffer;  a
@@ -136,13 +36,68 @@
   [fun] 
   (proxy [SimpleChannelHandler] []
     (messageReceived 
-     [ctx event]
-     (let [msg (strip-lines (. event getMessage))
-           connection (@connections (. event getChannel))]
-       (dosync (alter connection assoc :buffer (conj (:buffer @connection) msg)))))
-    (channelConnected [ctx event] (open-channel fun (. event getChannel) (. ctx getPipeline)))
-    (channelDisconnected [ctx event] (close-channel (. event getChannel)))))
+     [#^ChannelHandlerContext ctx #^UpstreamMessageEvent me]
+     (let [msgs (binding [*connection* {:ctx ctx :event me}]
+                  (fun :upstream (.. me getChannel getRemoteAddress) (. me getMessage)))]
+       (if (not (empty? msgs))
+         (doseq [message msgs]
+           (. ctx (sendUpstream (new UpstreamMessageEvent 
+                                     (. me getChannel) 
+                                     message
+                                     (.. me getChannel getRemoteAddress))))))))
+    (writeRequested
+     [#^ChannelHandlerContext ctx #^DownstreamMessageEvent me]
+     (let [msgs (binding [*connection* {:ctx ctx :event me}]
+                  (fun :downstream (.. me getChannel getRemoteAddress) (. me getMessage)))]
+       (if (not (empty? msgs))
+         (doseq [message msgs]
+           (. ctx (sendDownstream (new DownstreamMessageEvent 
+                                       (. me getChannel) 
+                                       (. me getFuture)
+                                       message 
+                                       (.. me getChannel getRemoteAddress))))))))
+    (channelConnected 
+     [#^ChannelHandlerContext ctx #^ChannelStateEvent event] 
+     (do (binding [*connection* {:ctx ctx :event event}]
+           (fun :connect (.. event getChannel getRemoteAddress)))
+         (. ctx (sendUpstream event))))
+    (channelDisconnected
+     [#^ChannelHandlerContext ctx #^ChannelStateEvent event] 
+     (do (binding [*connection* {:ctx ctx :event event}]
+           (fun :disconnect (.. event getChannel getRemoteAddress)))
+         (. ctx (sendDownstream event))))))
 
+(def #^{:private true
+        :doc "Base Handler intercepts and blocks uninteresting message types 
+              from propagating up the pipeline;  passes channelConnected,
+              channelDisconnected, handleUpstream, handleDownstream,
+              messageReceived, unbindRequested, writeRequested, 
+              setInterestOpsRequested"}
+     base-server-handler
+     (proxy [SimpleChannelHandler] []
+       ; Block these message types
+       (channelBound [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil)
+       (channelClosed [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil)
+       (channelInterestChanged [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil)
+       (channelOpen [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil)
+       (channelUnbound [#^ChannelHandlerContext ctx  #^ChannelStateEvent cse] nil)
+       (childChannelClosed [#^ChannelHandlerContext ctx  #^ChildChannelStateEvent ccse] nil)
+       (childChannelOpen [#^ChannelHandlerContext ctx #^ChildChannelStateEvent ccse] nil)
+       (connectRequested [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil) ; shouldnt see this one
+       (exceptionCaught [#^ChannelHandlerContext ctx #^ExceptionEvent ee] (log :info "Handler error"  (. ee getCause)))
+       ; Log and foward these
+       (channelConnected 
+        [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] 
+        (do (log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Connected"))
+            (. ctx (sendUpstream cse))))
+       (channelDisconnected
+        [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] 
+        (do (log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Disconnected"))
+            (. ctx (sendUpstream cse))))))
+        
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;
+;;;; SSL/TLS
 
 (defn- get-ssl-context
   "Generate an SSLContext for a KeyStore"
@@ -169,38 +124,49 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Public
+;;;;
+;;;; Provides functions to start and stop a server, and also implements netty
+;;;; level functionality like TLS
 
 (defn start-tls
-  "Modify channel pipeline to utilize TLS"
+  "Switch channel to TLS"
   []
-  (let [handler (get-ssl-handler (conf :keystore)
-                                 (conf :keypassword)
-                                 (conf :certificatepassword))]
-    (. log (debug (str "Starting SSL Handshake for " (.getRemoteAddress (:channel @*connection*)))))
-    (do (doto (:pipeline @*connection*)
-          (.addFirst "ssl" handler))
+  (let [handler (get-ssl-handler (properties :server:keystore)
+                                 (properties :server:keypassword)
+                                 (properties :server:certificatepassword))]
+    (log :debug (str "Starting SSL Handshake for " (.getRemoteAddress (:channel *connection*))))
+    (do (.. (:ctx *connection*) getPipeline (addFirst "ssl" handler))
         (.. handler 
-            (handshake (:channel @*connection*)) 
+            (handshake (:channel *connection*))
             (addListener (proxy [ChannelFutureListener] []
                            (operationComplete 
                             [future]
-                            (do (. log (debug (str "SSL Handshake finished : " (. future isSuccess))))))))))))
+                            (log :debug (str "SSL Handshake finished : " (. future isSuccess))))))))))
 
 (defn get-ip
   "Return the IP for the current connection"
   []
-  (. (:channel @*connection*) getRemoteAddress))
+  (. (:channel *connection*) getRemoteAddress))
 
-(defn create-server
-  "Create a new socket server bound to the port"
-  [port fun]
+(defn close-channel
+  []
+  (do (.. (:event *connection*) getChannel close)
+      nil))
+
+(defn start-server
+  "Create a new socket server bound to the port, adding the supplied funs 
+   in order to the default pipeline"
+  [port & funs]
   (do (. InternalLoggerFactory (setDefaultFactory (Log4JLoggerFactory.)))
       (let [bootstrap (ServerBootstrap. (NioServerSocketChannelFactory. (. Executors newCachedThreadPool)
                                                                         (. Executors newCachedThreadPool)))]
-        (do (doto (. bootstrap getPipeline)
-              (.addLast "decoder" (StringDecoder.))
-              (.addLast "encoder" (StringEncoder.))
-              (.addLast "handler" (get-channel-handler fun)))
+        (do (let [pipeline (. bootstrap getPipeline)]
+              (doto pipeline
+                (.addLast "decoder" (StringDecoder.))
+                (.addLast "encoder" (StringEncoder.))
+                (.addLast "ego-base" base-server-handler))
+              (doseq [f funs]
+                (. pipeline addLast (str "handler_" (.toString f)) (get-channel-handler f))))
             (. bootstrap (setOption "child.tcpNoDelay" true))
             (. bootstrap (setOption "child.keepAlive" true))
             (. bootstrap (bind (InetSocketAddress. port)))))))
