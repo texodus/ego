@@ -41,7 +41,7 @@
 (defmethod parse :pre-qname                                                         ; element has just started
   [element c]
   (condp = c 
-    \/ (alter-nil element assoc :state :qname, :tag :end-element)                      ; this is an end tag
+    \/ (alter-nil element assoc :state :qname, :tag :end-element)                   ; this is an end tag
     \? (alter-nil element assoc :state :dtd)
     (alter-nil element assoc :state :qname, :qname c, :tag :start-element)))        ; type element is undetermined
 
@@ -102,7 +102,7 @@
   (dosync (condp = c
             \" (alter-nil element assoc :state :between)
             \' (alter-nil element assoc :state :between)
-            (alter-nil element assoc                                               ; more attr-value characters
+            (alter-nil element assoc                                                ; more attr-value characters
                        :attrs (cons [(first (last (:attrs @element))) 
                                      (str (second (first (:attrs @element))) c)]
                                     (drop 1 (:attrs @element)))))))
