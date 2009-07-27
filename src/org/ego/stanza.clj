@@ -13,6 +13,10 @@
             [org.ego.server :as server])
   (:use [org.ego.common :only [properties log]]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;
+;;;; Common
+
 (defmacro alter-nil
   "Works like alter but returns nil"
   [& xs]
@@ -27,6 +31,10 @@
   (when (and (= (:state @stanza) :chars)
              (some (complement #(. Character (isWhitespace %))) (str (:sb @stanza))))
     (alter-nil stanza assoc :current (push-content (:current @stanza) (str (:sb @stanza))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;
+;;;; XML parser
 
 (defstruct element :tag :attrs :content)
 (defstruct stanza :stack :current :state :sb :count)

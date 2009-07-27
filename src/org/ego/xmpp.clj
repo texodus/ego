@@ -13,7 +13,6 @@
             [org.ego.server :as server]
             [org.ego.db.accounts :as accounts]
             [org.ego.xmpp.iq :as iq]))
- 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
