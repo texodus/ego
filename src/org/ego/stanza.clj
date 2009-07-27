@@ -83,6 +83,22 @@
             (. sb (append (:qname el)))
             (alter-nil stanza assoc :state :chars))))
 
+(defn emit [e]
+  (if (instance? String e)
+    e
+    (do
+      (str "<" 
+           (name (:tag e))
+           (when (:attrs e)
+             (apply str (for [attr (:attrs e)]
+                          (str " " (name (key attr)) "='" (val attr)"'"))))
+           (if (:content e)
+            (str ">"
+                 (apply str (for [c (:content e)]
+                              (emit c)))
+                 (str "</" (name (:tag e)) ">"))
+            "/>")))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Channel Handler
@@ -107,6 +123,10 @@
   [_ ip msg]
   (let [stanza (@stanzas ip)]
     (parse stanza msg)))
+
+(defmethod process :downstream
+  [_ ip msg]
+  (apply str (map emit msg)))
 
 (defmethod process :default [_ ip msg] msg)
 

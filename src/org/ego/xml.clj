@@ -62,13 +62,13 @@
     (condp = c
       \> (alter element assoc :state nil)                                           ; this is the end of a start-element
       \  (alter-nil element assoc :state :between)                                  ; qname is finished, switching to attr-name
-      \/ (alter-nil element assoc :tag :end-element, :state :must-end)              ; qname is finished, switching to must-terminate
+      \/ (alter element assoc :tag :start-element, :state :must-end)              ; qname is finished, switching to must-terminate
       (alter-nil element assoc :qname (str (:qname @element) c))))                  ; more qname characters
   
 (defmethod parse :between                                                           ; between xml terms
   [element c]
   (condp = c
-    \/ (alter-nil element assoc :tag :end-element, :state :must-end)                ; element is finished, switch to must-terminate
+    \/ (alter element assoc :tag :start-element, :state :must-end)                ; element is finished, switch to must-terminate
     \  nil                                                                          ; no-op
     \> (alter element assoc :state nil)                                             ; end of element
     (alter-nil element assoc                                                        ; first attr-name character
@@ -77,8 +77,8 @@
 
  (defmethod parse :must-end                                                         ; parsed a / but not terminated
    [element c]
-   (if (= c ">")
-     (alter element assoc :state nil)                                               ; parsed a / but not terminated
+   (if (= c \>)
+     (alter element assoc :tag :end-element :state nil)                                               ; parsed a / but not terminated
      (alter element assoc :state nil :tag :malformed)))                             ; malformed
 
 (defmethod parse :attr-name                                                         ; element is malformed

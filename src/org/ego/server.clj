@@ -39,7 +39,7 @@
      [#^ChannelHandlerContext ctx #^UpstreamMessageEvent me]
      (let [msgs (binding [*connection* {:ctx ctx :event me}]
                   (fun :upstream (.. me getChannel getRemoteAddress) (. me getMessage)))]
-       (if (not (empty? msgs))
+      (if (not (empty? msgs))
          (doseq [message msgs]
            (. ctx (sendUpstream (new UpstreamMessageEvent 
                                      (. me getChannel) 
@@ -47,15 +47,16 @@
                                      (.. me getChannel getRemoteAddress))))))))
     (writeRequested
      [#^ChannelHandlerContext ctx #^DownstreamMessageEvent me]
-     (let [msgs (binding [*connection* {:ctx ctx :event me}]
+     (let [msg (binding [*connection* {:ctx ctx :event me}]
                   (fun :downstream (.. me getChannel getRemoteAddress) (. me getMessage)))]
-       (if (not (empty? msgs))
-         (doseq [message msgs]
-           (. ctx (sendDownstream (new DownstreamMessageEvent 
-                                       (. me getChannel) 
-                                       (. me getFuture)
-                                       message 
-                                       (.. me getChannel getRemoteAddress))))))))
+;       (if (not (empty? msgs))
+ ;        (doseq [message msgs]
+           (if (not (nil? msg))
+             (. ctx (sendDownstream (new DownstreamMessageEvent 
+                                         (. me getChannel) 
+                                         (. me getFuture)
+                                         msg 
+                                         (.. me getChannel getRemoteAddress)))))))
     (channelConnected 
      [#^ChannelHandlerContext ctx #^ChannelStateEvent event] 
      (do (binding [*connection* {:ctx ctx :event event}]
@@ -134,24 +135,23 @@
   (let [handler (get-ssl-handler (properties :server:keystore)
                                  (properties :server:keypassword)
                                  (properties :server:certificatepassword))]
-    (log :debug (str "Starting SSL Handshake for " (.getRemoteAddress (:channel *connection*))))
+    (log :debug (str "Starting SSL Handshake "))
     (do (.. (:ctx *connection*) getPipeline (addFirst "ssl" handler))
         (.. handler 
-            (handshake (:channel *connection*))
+            (handshake (. (:event *connection*) getChannel))
             (addListener (proxy [ChannelFutureListener] []
                            (operationComplete 
                             [future]
                             (log :debug (str "SSL Handshake finished : " (. future isSuccess))))))))))
 
-(defn get-ip
-  "Return the IP for the current connection"
-  []
-  (. (:channel *connection*) getRemoteAddress))
-
 (defn close-channel
   []
   (do (.. (:event *connection*) getChannel close)
       nil))
+
+(defn channel-write
+  [msg]
+  (do (.. (:event *connection*) getChannel (write msg))))
 
 (defn start-server
   "Create a new socket server bound to the port, adding the supplied funs 

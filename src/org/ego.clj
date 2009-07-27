@@ -2,7 +2,8 @@
   (:gen-class)
   (:require [org.ego.xml :as xml]
             [org.ego.server :as server]
-            [org.ego.stanza :as stanza])
+            [org.ego.stanza :as stanza]
+            [org.ego.xmpp :as xmpp])
   (:use [org.ego.common :only [properties log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -25,7 +26,7 @@
 (defn -main
   [& args]
   (do (log :info "Starting XMPP Server on port 5222")
-      (let [server (server/start-server 5222 xml/process stanza/process process)]
+      (let [server (server/start-server 5222 xml/process stanza/process xmpp/process)]
         (dosync (ref-set *server* server)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

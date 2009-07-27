@@ -4,15 +4,18 @@
            [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
            [org.apache.log4j Logger])
   (:require [org.ego.common :as common]
-            [clojure.contrib.sql :as sql]))
+            [clojure.contrib.sql :as sql])
+  (:use [org.ego.common :only [properties log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
-
-(def #^{:private true} log (. Logger (getLogger (str *ns*))))
-(def #^{:private true} conf (common/get-properties "server"))
-(def #^{:private true} dbconf (common/get-properties "database"))
+(def db
+     {:classname (properties :database:classname)
+      :subprotocol (properties :database:subprotocol)
+      :subname (properties :database:subname)
+      :user (properties :database:user)
+      :password (properties :database:password)})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -21,7 +24,7 @@
 (defn login
   "Check the login credentials, set online in DB and return the user_id"
   [username password]
-  (sql/with-connection dbconf
+  (sql/with-connection db
     (let [user-id (sql/with-query-results rs 
                     [(str "SELECT id FROM accounts " 
                           "WHERE username = '" username "' "
@@ -36,7 +39,7 @@
 (defn get-friends
   "Returns a list of jids"
   [user-id]
-  (sql/with-connection dbconf
+  (sql/with-connection db
     (sql/with-query-results rs
       [(str "SELECT jid FROM friends "
             "WHERE account_id = " user-id)]

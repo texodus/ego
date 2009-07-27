@@ -9,21 +9,18 @@
            [org.apache.commons.codec.binary Base64]
            [clojure.lang LineNumberingPushbackReader])
   (:require [org.ego.common :as common]
-            [org.ego.xml :as xml]
             [org.ego.server :as server]
-            [org.ego.db.accounts :as accounts]))
+            [org.ego.db.accounts :as accounts])
+  (:use [org.ego.common :only [properties log]]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
 
-(def #^{:private true} log (. Logger (getLogger (str *ns*))))
-(def #^{:private true} conf (common/get-properties "server"))
-
 (defn- xmpplog
-  [& string]
-  (. log (info (str "IP " (server/get-ip) " " (apply str string)))))
+  [& string] nil)
+  ;(common/log :info (str "IP " (server/get-ip) " " (apply str string))))
 
 (def id-counter (ref 1))
 
@@ -51,85 +48,74 @@
   [content state]
   (let [resource (gen-resource (-> content :content :content :content))]
     (do (xmpplog "assigned resource " resource)
-        (xml/emit-element {:tag :iq
-                           :attrs {:id (-> content :attrs :id)
-                                   :type "result"}
-                           :content [{:tag :bind
-                                      :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-bind"}
-                                      :content [{:tag :resource 
-                                                 :content [resource]}]}]})
-        (flush)
-        (assoc state :resource resource))))
+        (alter state assoc :resource resource)
+        [{:tag :iq
+          :attrs {:id (-> content :attrs :id)
+                  :type "result"}
+          :content [{:tag :bind
+                     :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-bind"}
+                     :content [{:tag :resource 
+                                :content [resource]}]}]}])))        
                            
 (defmethod process [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
   [content state]
   (do (xmpplog "opened session")
-      (xml/emit-element {:tag :iq
-                         :attrs {:id (-> content :attrs :id)
-                                 :type "result"}
-                         :content [{:tag :session
-                                    :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}}]})
-      (flush)
-      (assoc state :session true)))
+      (alter state assoc :session true)
+      [{:tag :iq
+        :attrs {:id (-> content :attrs :id)
+                :type "result"}
+        :content [{:tag :session
+                   :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}}]}]))
 
 (defmethod process [:query :get "http://jabber.org/protocol/disco#items"]
   [content state]
-  (do (xml/emit-element {:tag :iq
-                        :attrs {:from (:domain conf)
-                                :id (-> content :attrs :id)
-                                :to (str (:username state) "@" (:domain conf) "/" (:resource state))
-                                :type "result"}
-                        :content [{:tag :query
-                                   :attrs {:xmlns "http://jabber.org/protocol/disco#items"}}]})
-      (flush)
-      nil))
+  [{:tag :iq
+    :attrs {:from (:server:domain properties)
+            :id (-> content :attrs :id)
+            :to (str (:username state) "@" (:server:domain properties) "/" (:resource state))
+            :type "result"}
+    :content [{:tag :query
+               :attrs {:xmlns "http://jabber.org/protocol/disco#items"}}]}])
 
 (defmethod process [:query :get "http://jabber.org/protocol/disco#info"]
   [content state]
-  (do (xml/emit-element {:tag :iq
-                        :attrs {:from (:domain conf)
-                                :id (-> content :attrs :id)
-                                :to (str (:username state) "@" (:domain conf) "/" (:resource state))
-                                :type "result"}
-                        :content [{:tag :query
-                                   :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
-                                   :content [{:tag :feature
-                                              :attrs {:var "jabber:iq:roster"}}
-                                             {:tag :feature
-                                              :attrs {:var "vcard-temp"}}]}]})
-      (flush)
-      nil))
+  [{:tag :iq
+    :attrs {:from (:server:domain properties)
+            :id (-> content :attrs :id)
+            :to (str (:username state) "@" (:server:domain properties) "/" (:resource state))
+            :type "result"}
+    :content [{:tag :query
+               :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
+               :content [{:tag :feature
+                          :attrs {:var "jabber:iq:roster"}}
+                         {:tag :feature
+                          :attrs {:var "vcard-temp"}}]}]}])
 
 (defmethod process [:query :get "jabber:iq:roster"]
   [content state]
   (let [friends (accounts/get-friends (:user-id state))]
     (do (xmpplog "requested roster [" (apply str (interpose ", " friends)) "]") 
-        (xml/emit-element {:tag :iq
-                           :attrs {:from (:domain conf)
-                                   :id (-> content :attrs :id)
-                                   :to (str (:username state) "@" (:domain conf) "/" (:resource state))
-                                   :type "result"}
-                           :content [{:tag :query
-                                      :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
-                                      :content (for [friend friends]
-                                                 {:tag :item
-                                                  :attrs {:jid friend}})}]})
-      (flush)
-      nil)))
+        [{:tag :iq
+          :attrs {:from (:server:domain properties)
+                  :id (-> content :attrs :id)
+                  :to (str (:username state) "@" (:server:domain properties) "/" (:resource state))
+                  :type "result"}
+          :content [{:tag :query
+                     :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
+                     :content (for [friend friends]
+                                {:tag :item
+                                 :attrs {:jid friend}})}]}])))
 
 (defmethod process [:ping :get "urn:xmpp:ping"]
   [content state]
   (do (xmpplog "ping!")
-      (xml/emit-element {:tag :iq
-                         :attrs {:id (-> content :attrs :id) 
-                                 :from (:domain conf)
-                                 :type "result"}})
-      (flush)
-      nil))
-                                 
+      [{:tag :iq
+        :attrs {:id (-> content :attrs :id) 
+                :from (:server:domain properties)
+                :type "result"}}]))
 
 (defmethod process :default
-  [content state]
-  (do (. log (warn (str "IP " (server/get-ip) " sent unknown IQ " content)))
-      nil))
+  [content state] nil)
+;  (log :warn (str "IP " (server/get-ip) " sent unknown IQ " content)))
+  
 
