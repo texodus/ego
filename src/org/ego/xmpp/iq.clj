@@ -9,7 +9,7 @@
            [org.apache.commons.codec.binary Base64]
            [clojure.lang LineNumberingPushbackReader])
   (:require [org.ego.common :as common]
-            [org.ego.server :as server]
+       ;     [org.ego.server :as server]
             [org.ego.db.accounts :as accounts])
   (:use [org.ego.common :only [properties log]]))
  
@@ -19,8 +19,8 @@
 ;;;; Common
 
 (defn- xmpplog
-  [& string] nil)
-  ;(common/log :info (str "IP " (server/get-ip) " " (apply str string))))
+  [& string]
+  (log :info (apply str string)))
 
 (def id-counter (ref 1))
 
@@ -47,8 +47,8 @@
 (defmethod process [:bind :set "urn:ietf:params:xml:ns:xmpp-bind"]
   [content state]
   (let [resource (gen-resource (-> content :content :content :content))]
-    (do (xmpplog "assigned resource " resource)
-        (alter state assoc :resource resource)
+    (do (xmpplog "bound to resource " resource)
+        (dosync (alter state assoc :resource resource))
         [{:tag :iq
           :attrs {:id (-> content :attrs :id)
                   :type "result"}
@@ -60,7 +60,7 @@
 (defmethod process [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
   [content state]
   (do (xmpplog "opened session")
-      (alter state assoc :session true)
+      (dosync (alter state assoc :session true))
       [{:tag :iq
         :attrs {:id (-> content :attrs :id)
                 :type "result"}

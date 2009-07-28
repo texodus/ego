@@ -103,7 +103,7 @@
             \" (alter-nil element assoc :state :between)
             \' (alter-nil element assoc :state :between)
             (alter-nil element assoc                                                ; more attr-value characters
-                       :attrs (cons [(first (last (:attrs @element))) 
+                       :attrs (cons [(first (first (:attrs @element))) 
                                      (str (second (first (:attrs @element))) c)]
                                     (drop 1 (:attrs @element)))))))
     

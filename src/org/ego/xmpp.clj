@@ -77,7 +77,7 @@
                         (if (not (nil? (state :username)))
                           {:tag :session
                            :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}
-                           :content [{:tag :optional}]})])}]))
+                           :content [{:tag :required}]})])}]))
 
 (defmethod parse :starttls
   [content state]
@@ -133,12 +133,11 @@
 
 (defmethod process :upstream
   [_ ip msg]
-(do (log :debug (str "XMPP : " msg))
   (let [stream (@xmpp-streams ip)
         return (parse msg stream)]
     (if (not (nil? return))
       (server/channel-write return))
-    nil)))
+    nil))
 
 (defmethod process :default [_ ip msg] msg)
 
