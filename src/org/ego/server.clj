@@ -144,6 +144,10 @@
                             [future]
                             (log :debug (str "SSL Handshake finished : " (. future isSuccess))))))))))
 
+(defn get-ip
+  []
+  (.. (:event *connection*) getChannel getRemoteAddress))
+
 (defn close-channel
   []
   (do (.. (:event *connection*) getChannel close)

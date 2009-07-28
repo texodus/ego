@@ -40,8 +40,9 @@
 (defn get-friends
   "Returns a list of jids"
   [user-id]
-  (sql/with-connection db
-    (sql/with-query-results rs
-      [(str "SELECT jid FROM friends "
+  (let [query (str "SELECT jid FROM friends "
             "WHERE account_id = " user-id)]
-      (doall (map :jid rs)))))
+    (sql/with-connection db
+      (sql/with-query-results rs
+        [query]
+        (doall (map :jid rs))))))

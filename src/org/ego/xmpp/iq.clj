@@ -9,7 +9,7 @@
            [org.apache.commons.codec.binary Base64]
            [clojure.lang LineNumberingPushbackReader])
   (:require [org.ego.common :as common]
-       ;     [org.ego.server :as server]
+            [org.ego.server :as server]
             [org.ego.db.accounts :as accounts])
   (:use [org.ego.common :only [properties log]]))
  
@@ -20,7 +20,8 @@
 
 (defn- xmpplog
   [& string]
-  (log :info (apply str string)))
+  (let [output (str (server/get-ip) " " (apply str string))]
+    (log :info output)))
 
 (def id-counter (ref 1))
 
@@ -72,7 +73,7 @@
   [{:tag :iq
     :attrs {:from (:server:domain properties)
             :id (-> content :attrs :id)
-            :to (str (:username state) "@" (:server:domain properties) "/" (:resource state))
+            :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
             :type "result"}
     :content [{:tag :query
                :attrs {:xmlns "http://jabber.org/protocol/disco#items"}}]}])
@@ -82,7 +83,7 @@
   [{:tag :iq
     :attrs {:from (:server:domain properties)
             :id (-> content :attrs :id)
-            :to (str (:username state) "@" (:server:domain properties) "/" (:resource state))
+            :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
             :type "result"}
     :content [{:tag :query
                :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
@@ -93,12 +94,12 @@
 
 (defmethod process [:query :get "jabber:iq:roster"]
   [content state]
-  (let [friends (accounts/get-friends (:user-id state))]
-    (do (xmpplog "requested roster [" (apply str (interpose ", " friends)) "]") 
+  (let [friends (accounts/get-friends (:user-id @state))]
+     (do (xmpplog "requested roster [" (apply str (interpose ", " friends)) "]") 
         [{:tag :iq
           :attrs {:from (:server:domain properties)
                   :id (-> content :attrs :id)
-                  :to (str (:username state) "@" (:server:domain properties) "/" (:resource state))
+                  :to (str (:username state) "@" (:server:domain properties) "/" (:resource @state))
                   :type "result"}
           :content [{:tag :query
                      :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
