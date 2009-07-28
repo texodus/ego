@@ -17,6 +17,11 @@
 ;;;;
 ;;;; Common
 
+(defn- xmpplog
+  [& string]
+  (let [output (str (server/get-ip) " " (apply str string))]
+    (log :info output)))
+
 (defn- close-channel
   []
   (server/close-channel))
@@ -77,7 +82,7 @@
                         (if (not (nil? (state :username)))
                           {:tag :session
                            :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}
-                           :content [{:tag :required}]})])}]))
+                           :content [{:tag :optional}]})])}]))
 
 (defmethod parse :starttls
   [content state]
@@ -135,6 +140,7 @@
   [_ ip msg]
   (let [stream (@xmpp-streams ip)
         return (parse msg stream)]
+    (xmpplog "XMPP : " msg " : " return)
     (if (not (nil? return))
       (server/channel-write return))
     nil))

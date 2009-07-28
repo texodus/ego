@@ -94,6 +94,7 @@
        (channelDisconnected
         [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] 
         (do (log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Disconnected"))
+          ;  (println (.. cse getChannel getRemoteAddress))
             (. ctx (sendUpstream cse))))))
         
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

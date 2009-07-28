@@ -32,6 +32,22 @@
              (some (complement #(. Character (isWhitespace %))) (str (:sb @stanza))))
     (alter-nil stanza assoc :current (push-content (:current @stanza) (str (:sb @stanza))))))
 
+(defn emit [e]
+  (if (instance? String e)
+    e
+    (do
+      (str "<" 
+           (name (:tag e))
+           (when (:attrs e)
+             (apply str (for [attr (:attrs e)]
+                          (str " " (name (key attr)) "='" (val attr)"'"))))
+           (if (:content e)
+            (str ">"
+                 (apply str (for [c (:content e)]
+                              (emit c)))
+                 (str "</" (name (:tag e)) ">"))
+            "/>")))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; XML parser
@@ -82,22 +98,6 @@
           (let [#^StringBuilder sb (:sb @stanza)]
             (. sb (append (:qname el)))
             (alter-nil stanza assoc :state :chars))))
-
-(defn emit [e]
-  (if (instance? String e)
-    e
-    (do
-      (str "<" 
-           (name (:tag e))
-           (when (:attrs e)
-             (apply str (for [attr (:attrs e)]
-                          (str " " (name (key attr)) "='" (val attr)"'"))))
-           (if (:content e)
-            (str ">"
-                 (apply str (for [c (:content e)]
-                              (emit c)))
-                 (str "</" (name (:tag e)) ">"))
-            "/>")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

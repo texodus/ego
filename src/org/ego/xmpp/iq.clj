@@ -107,6 +107,19 @@
                                 {:tag :item
                                  :attrs {:jid friend}})}]}])))
 
+(defmethod process [:vCard :get "vcard-temp"]
+  [content state]
+ ; (let [friends (accounts/get-friends (:user-id @state))]
+    (do (xmpplog "requested vcard")
+        [{:tag :iq
+          :attrs {:from (:server:domain properties)
+                  :id (-> content :attrs :id)
+                  :to (str (:username state) "@" (:server:domain properties) "/" (:resource @state))
+                  :type "result"}
+          :content [{:tag :vCard
+                     :attrs {:xmlns "vcard-temp"}
+                     :content ["THIS IS A TEMP vCard"]}]}]))
+
 (defmethod process [:ping :get "urn:xmpp:ping"]
   [content state]
   (do (xmpplog "ping!")
@@ -116,7 +129,8 @@
                 :type "result"}}]))
 
 (defmethod process :default
-  [content state] nil)
-;  (log :warn (str "IP " (server/get-ip) " sent unknown IQ " content)))
+  [content state]
+  (do (xmpplog " sent unknown IQ " content)
+      [{:tag :service-unavailable}]))
   
 
