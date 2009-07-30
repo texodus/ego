@@ -10,29 +10,9 @@
   <path id="ego.classpath">
     <pathelement location="lib/clojure.jar"/>
     <pathelement location="lib/clojure-contrib.jar"/>
-    <pathelement location="lib/activation.jar"/>
-    <pathelement location="lib/axis-ant.jar"/>
-    <pathelement location="lib/axis.jar"/>
-    <pathelement location="lib/commons-discovery-0.2.jar"/>
-    <pathelement location="lib/commons-logging-1.0.4.jar"/>
-    <pathelement location="lib/jaxrpc.jar"/>
-    <pathelement location="lib/jdbc2_0-stdext.jar"/>
     <pathelement location="lib/log4j-1.2.8.jar"/>
     <pathelement location="lib/postgresql-8.3-603.jdbc3.jar"/>
-    <pathelement location="lib/saaj.jar"/>
-    <pathelement location="lib/wsdl4j.jar"/>
-    <pathelement location="lib/mail.jar"/>
-    <pathelement location="lib/xercesImpl.jar"/>
     <pathelement location="lib/commons-codec-1.3.jar"/>
-    <pathelement location="lib/commons-fileupload-1.2.1.jar"/>
-    <pathelement location="lib/commons-io-1.4.jar"/>
-    <pathelement location="lib/compojure.jar"/>
-    <pathelement location="lib/httpcore-4.0.jar"/>
-    <pathelement location="lib/commons-httpclient-3.1.jar"/>
-    <pathelement location="lib/clj-http-client.jar"/>
-    <pathelement location="lib/servlet-api.jar"/>
-    <pathelement location="lib/jetty.jar"/>
-    <pathelement location="lib/jetty-util.jar"/>
     <pathelement location="lib/netty-3.1.0.CR1.jar"/>
     <pathelement location="${src}"/>
     <pathelement location="build"/>
@@ -57,6 +37,12 @@
     </javac>
   </target>
 
+  <target name="test" description="Run tests">
+    <java fork="true" dir="dist/lib" classname="org.ego.test.stanza_test">
+      <classpath refid="ego.classpath"/>
+    </java>
+  </target> 
+
   <target name="compile" depends="init, compile_java"  description="Compile Clojure sources.">
     <copy file="${src}/ego.properties" todir="${build}" />
     <copy file="${src}/log4j.properties" todir="${build}" />
@@ -72,10 +58,11 @@
       <arg value="org.ego.xmpp"/>
       <arg value="org.ego.xmpp.iq"/>
       <arg value="org.ego.db.accounts"/>
+      <arg value="org.ego.test.stanza-test"/>
     </java>
   </target>
 
- <target name="dist" depends="compile, manifest" description="generate the distribution" >
+ <target name="dist" depends="compile, manifest, test" description="generate the distribution" >
     <mkdir dir="${dist}/lib"/>
     <jar manifest="${build}/MANIFEST.MF" jarfile="${dist}/lib/ego.jar" basedir="${build}"/>
     <copy includeemptydirs="false" todir="${dist}/lib">
