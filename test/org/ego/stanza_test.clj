@@ -1,5 +1,4 @@
 (ns org.ego.stanza-test
-  (:gen-class)
   (:use [org.ego.stanza]
         [clojure.contrib.test-is]))
  

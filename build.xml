@@ -14,9 +14,7 @@
     <path refid="ivy.classpath" />
     <pathelement location="src"/>
     <pathelement location="build"/>
-    <fileset dir="build">
-      <include name="**/*.class"/>
-    </fileset>
+    <pathelement location="test"/>
   </path>
 
   <target name="download-ivy" unless="skip.download">
@@ -75,13 +73,10 @@
   </target>
 
   <target name="test" depends="update" description="Compile Clojure sources.">
-    <java classname="clojure.lang.Compile" fork="true">
+    <java classname="clojure.main" fork="true">
       <classpath refid="ego.classpath" />
-      <sysproperty key="clojure.compile.path" value="test-build"/>
-      <arg value="org.ego.stanza-test"/>
-      <arg value="org.ego-test"/>
+      <arg value="test/org/ego_test.clj"/>
     </java>
-    <delete dir="test-build" />
   </target>
  
   <target name="compile" depends="init, compile_java, update" description="Compile Clojure sources.">
