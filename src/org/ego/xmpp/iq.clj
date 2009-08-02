@@ -1,13 +1,5 @@
 (ns org.ego.xmpp.iq
   (:gen-class)
-  (:import [java.net ServerSocket Socket SocketException InetAddress InetSocketAddress URL]
-           [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
-           [javax.xml.parsers SAXParserFactory]
-           [org.xml.sax.helpers DefaultHandler]
-           [org.xml.sax InputSource]
-           [org.apache.log4j Logger]
-           [org.apache.commons.codec.binary Base64]
-           [clojure.lang LineNumberingPushbackReader])
   (:require [org.ego.common :as common]
             [org.ego.server :as server]
             [org.ego.db.accounts :as accounts])

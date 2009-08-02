@@ -1,13 +1,5 @@
 (ns org.ego.stanza
   (:gen-class)
-  (:import [java.net ServerSocket Socket SocketException InetAddress InetSocketAddress URL]
-           [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
-           [javax.xml.parsers SAXParserFactory]
-           [org.xml.sax.helpers DefaultHandler]
-           [org.xml.sax InputSource]
-           [org.apache.log4j Logger]
-           [clojure.lang LineNumberingPushbackReader]
-           [sun.misc BASE64Decoder])
   (:require [clojure.contrib.lazy-xml :as xml]
             [org.ego.common :as common]
             [org.ego.server :as server])

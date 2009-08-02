@@ -107,7 +107,7 @@
   (doto (. SSLContext (getInstance "TLS"))
     (.init (.getKeyManagers (doto (. KeyManagerFactory (getInstance "SunX509"))
                               (.init (doto (KeyStore/getInstance "JKS")
-                                       (.load (FileInputStream. path) 
+                                       (.load (. ClassLoader (getSystemResourceAsStream path)) 
                                               (.toCharArray key-pass)))
                                      (.toCharArray cert-pass))))
            (into-array [(proxy [TrustManager] []
