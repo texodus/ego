@@ -79,7 +79,7 @@
     </java>
   </target>
  
-  <target name="compile" depends="init, compile_java, update" description="Compile Clojure sources.">
+  <target name="compile" depends="init, update, compile_java" description="Compile Clojure sources.">
     <copy file="${src}/ego.properties" todir="${build}" />
     <copy file="${src}/log4j.properties" todir="${build}" />
     <copy file="${src}/ego.jks" todir="${build}" />
@@ -98,7 +98,7 @@
     
   </target>
  
- <target name="dist" depends="compile, manifest, test" description="generate the distribution" >
+ <target name="dist" depends="compile, test, manifest" description="generate the distribution" >
     <mkdir dir="${dist}/lib"/>
     <jar manifest="${build}/MANIFEST.MF" jarfile="${dist}/lib/ego.jar" basedir="${build}"/>
     <copy includeemptydirs="false" todir="${dist}/lib">
