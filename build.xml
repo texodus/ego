@@ -33,7 +33,6 @@
   <target name="update" depends="install-ivy" description="Download project dependencies">
     <ivy:settings file="ivysettings.xml" />
     <ivy:retrieve pattern="lib/[artifact].[ext]" />
-    <ivy:resolve />
     <ivy:cachepath pathid="ivy.classpath" />
   </target>
 
