@@ -2,7 +2,9 @@
   (:gen-class)
   (:import [org.apache.commons.codec.binary Base64])
   (:require [org.ego.server :as server]
-            [org.ego.db.accounts :as accounts])
+            [org.ego.db.accounts :as accounts]
+            [org.ego.xmpp.iq :as iq]
+            [org.ego.xmpp.message :as message])
   (:use [org.ego.common :only [properties gen-id]]
         [org.ego.server :only [log]]))
 
@@ -11,6 +13,10 @@
 ;;;; Process 
 
 (defmulti parse (fn [content _] (:tag content)))
+
+(defmethod parse :iq [content state] (iq/process content state))
+
+(defmethod parse :message [content state] (message/process content state))
 
 (defmethod parse :stream:stream
   [content state]
