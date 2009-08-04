@@ -1,6 +1,7 @@
 (ns org.ego.common
   (:gen-class)
   (:import [java.io FileReader BufferedReader InputStreamReader FileInputStream]
+           [java.security SecureRandom]
 	   [java.util Properties]))
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -96,3 +97,14 @@
                                                       (replace \. \:)))
                                          (try (. Integer (parseInt (second key-val)))
                                               (catch NumberFormatException e (second key-val)))))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;
+;;;; Misc.
+
+(def #^{:private true} seed (new SecureRandom))
+
+(defn gen-id [] (. (BigInteger. 50 seed)
+                   (toString 32)))
+
+

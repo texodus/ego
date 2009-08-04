@@ -17,8 +17,8 @@
            [org.jboss.netty.handler.codec.string StringEncoder StringDecoder]
            [org.jboss.netty.handler.codec.frame Delimiters DelimiterBasedFrameDecoder]
            [org.jboss.netty.logging InternalLoggerFactory Log4JLoggerFactory])
-  (:use [org.ego.common :only [properties log]]))
-  
+  (:require [org.ego.common :as common]))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Channel 
@@ -85,15 +85,15 @@
        (childChannelClosed [#^ChannelHandlerContext ctx  #^ChildChannelStateEvent ccse] nil)
        (childChannelOpen [#^ChannelHandlerContext ctx #^ChildChannelStateEvent ccse] nil)
        (connectRequested [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil) ; shouldnt see this one
-       (exceptionCaught [#^ChannelHandlerContext ctx #^ExceptionEvent ee] (log :info "Handler error"  (. ee getCause)))
-       ; Log and foward these
+       (exceptionCaught [#^ChannelHandlerContext ctx #^ExceptionEvent ee] (common/log :info "Handler error"  (. ee getCause)))
+       ; Common/Log and foward these
        (channelConnected 
         [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] 
-        (do (log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Connected"))
+        (do (common/log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Connected"))
             (. ctx (sendUpstream cse))))
        (channelDisconnected
         [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] 
-        (do (log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Disconnected"))
+        (do (common/log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Disconnected"))
           ;  (println (.. cse getChannel getRemoteAddress))
             (. ctx (sendUpstream cse))))))
         
@@ -133,21 +133,26 @@
 (defn start-tls
   "Switch channel to TLS"
   []
-  (let [handler (get-ssl-handler (properties :server:keystore)
-                                 (properties :server:keypassword)
-                                 (properties :server:certificatepassword))]
-    (log :debug (str "Starting SSL Handshake "))
+  (let [handler (get-ssl-handler (common/properties :server:keystore)
+                                 (common/properties :server:keypassword)
+                                 (common/properties :server:certificatepassword))]
+    (common/log :debug (str "Starting SSL Handshake "))
     (do (.. (:ctx *connection*) getPipeline (addFirst "ssl" handler))
         (.. handler 
             (handshake (. (:event *connection*) getChannel))
             (addListener (proxy [ChannelFutureListener] []
                            (operationComplete 
                             [future]
-                            (log :debug (str "SSL Handshake finished : " (. future isSuccess))))))))))
+                            (common/log :debug (str "SSL Handshake finished : " (. future isSuccess))))))))))
 
 (defn get-ip
   []
   (.. (:event *connection*) getChannel getRemoteAddress))
+
+(defn log
+  [& args]
+  (let [output (str (get-ip) " " (apply str (rest args)))]
+    (common/log (first args) output)))
 
 (defn close-channel
   []

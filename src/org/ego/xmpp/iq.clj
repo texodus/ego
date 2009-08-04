@@ -3,25 +3,13 @@
   (:require [org.ego.common :as common]
             [org.ego.server :as server]
             [org.ego.db.accounts :as accounts])
-  (:use [org.ego.common :only [properties log]]))
+  (:use [org.ego.common :only [properties gen-id]]
+        [org.ego.server :only [log]]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
-
-(defn- xmpplog
-  [& string]
-  (let [output (str (server/get-ip) " " (apply str string))]
-    (log :info output)))
-
-(def id-counter (ref 1))
-
-; TODO make an unpredictable (nonsequential) id generator
-(defn gen-id
-  []
-  (do (dosync (alter id-counter inc))
-      @id-counter))
 
 (defn gen-resource
   [string]
@@ -40,7 +28,7 @@
 (defmethod process [:bind :set "urn:ietf:params:xml:ns:xmpp-bind"]
   [content state]
   (let [resource (gen-resource (-> content :content :content :content))]
-    (do (xmpplog "bound to resource " resource)
+    (do (log :debug (str "bound to resource " resource))
         (dosync (alter state assoc :resource resource))
         [{:tag :iq
           :attrs {:id (-> content :attrs :id)
@@ -48,11 +36,11 @@
           :content [{:tag :bind
                      :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-bind"}
                      :content [{:tag :resource 
-                                :content [resource]}]}]}])))        
+                                :content [resource]}]}]}])))
                            
 (defmethod process [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
   [content state]
-  (do (xmpplog "opened session")
+  (do (log :debug "opened session")
       (dosync (alter state assoc :session true))
       [{:tag :iq
         :attrs {:id (-> content :attrs :id)
@@ -87,7 +75,7 @@
 (defmethod process [:query :get "jabber:iq:roster"]
   [content state]
   (let [friends (accounts/get-friends (:user-id @state))]
-     (do (xmpplog "requested roster [" (apply str (interpose ", " friends)) "]") 
+     (do (log :debug (str "requested roster [" (apply str (interpose ", " friends)) "]")) 
         [{:tag :iq
           :attrs {:from (:server:domain properties)
                   :id (-> content :attrs :id)
@@ -102,7 +90,7 @@
 (defmethod process [:vCard :get "vcard-temp"]
   [content state]
  ; (let [friends (accounts/get-friends (:user-id @state))]
-    (do (xmpplog "requested vcard")
+    (do (log :debug "requested vcard")
         [{:tag :iq
           :attrs {:from (:server:domain properties)
                   :id (-> content :attrs :id)
@@ -114,7 +102,7 @@
 
 (defmethod process [:ping :get "urn:xmpp:ping"]
   [content state]
-  (do (xmpplog "ping!")
+  (do (log :debug "ping!")
       [{:tag :iq
         :attrs {:id (-> content :attrs :id) 
                 :from (:server:domain properties)
@@ -122,7 +110,7 @@
 
 (defmethod process :default
   [content state]
-  (do (xmpplog " sent unknown IQ " content)
+  (do (log :debug (str "sent unknown IQ " content))
       [{:tag :service-unavailable}]))
   
 

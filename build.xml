@@ -90,6 +90,7 @@
       <arg value="org.ego"/>
       <arg value="org.ego.xml"/>
       <arg value="org.ego.stanza"/>
+      <arg value="org.ego.xmpp.stream"/>
       <arg value="org.ego.xmpp"/>
       <arg value="org.ego.xmpp.iq"/>
       <arg value="org.ego.db.accounts"/>
