@@ -51,7 +51,7 @@
 (defmethod parse :start-element
   [stanza el]
   (let [e (struct element 
-                  (keyword (:qname el))
+                  (keyword (str (:qname el)))
                   (into {} (map #(vector (keyword (first %)) (second %)) (:attrs el))))]
     (if (= (:tag e) :stream:stream)
       [e] ; this is a stream, pass and don't acc

@@ -35,8 +35,8 @@
                   :type "result"}
           :content [{:tag :bind
                      :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-bind"}
-                     :content [{:tag :resource 
-                                :content [resource]}]}]}])))
+                     :content [{:tag :jid 
+                                :content [(str (:username @state) "@" (:server:domain properties) "/" (:resource @state))]}]}]}])))
                            
 (defmethod process [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
   [content state]
@@ -44,6 +44,7 @@
       (dosync (alter state assoc :session true))
       [{:tag :iq
         :attrs {:id (-> content :attrs :id)
+                :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
                 :type "result"}
         :content [{:tag :session
                    :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}}]}]))
@@ -56,8 +57,9 @@
             :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
             :type "result"}
     :content [{:tag :query
-               :attrs {:xmlns "http://jabber.org/protocol/disco#items"}}]}])
-
+               :attrs {:xmlns "http://jabber.org/protocol/disco#items"
+                       :node "http://jabber.org/protocol/commands"}}]}])
+               
 (defmethod process [:query :get "http://jabber.org/protocol/disco#info"]
   [content state]
   [{:tag :iq
@@ -67,7 +69,14 @@
             :type "result"}
     :content [{:tag :query
                :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
-               :content [{:tag :feature
+               :content [{:tag :identity
+                          :attrs {:category "server"
+                                  :name "Ego Server"
+                                  :type "im"}}
+                    ;     {:tag :identity
+                     ;     :attrs {:category "component"
+                      ;            :type "presence"}}
+                         {:tag :feature
                           :attrs {:var "jabber:iq:roster"}}
                          {:tag :feature
                           :attrs {:var "vcard-temp"}}]}]}])
@@ -77,15 +86,16 @@
   (let [friends (accounts/get-friends (:user-id @state))]
      (do (log :debug (str "requested roster [" (apply str (interpose ", " friends)) "]")) 
         [{:tag :iq
-          :attrs {:from (:server:domain properties)
-                  :id (-> content :attrs :id)
-                  :to (str (:username state) "@" (:server:domain properties) "/" (:resource @state))
+          :attrs {:id (-> content :attrs :id)
+                  :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
                   :type "result"}
           :content [{:tag :query
-                     :attrs {:xmlns "http://jabber.org/protocol/disco#info"}
+                     :attrs {:xmlns "jabber:iq:roster"}
                      :content (for [friend friends]
                                 {:tag :item
-                                 :attrs {:jid friend}})}]}])))
+                                 :attrs {:jid friend
+                                         :name friend
+                                         :subscription "none"}})}]}])))
 
 (defmethod process [:vCard :get "vcard-temp"]
   [content state]
@@ -94,11 +104,22 @@
         [{:tag :iq
           :attrs {:from (:server:domain properties)
                   :id (-> content :attrs :id)
-                  :to (str (:username state) "@" (:server:domain properties) "/" (:resource @state))
+                  :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
                   :type "result"}
           :content [{:tag :vCard
                      :attrs {:xmlns "vcard-temp"}
                      :content ["THIS IS A TEMP vCard"]}]}]))
+
+(defmethod process [:vCard :set "vcard-temp"]
+  [content state]
+ ; (let [friends (accounts/get-friends (:user-id @state))]
+    (do (log :debug "set vcard")
+        [{:tag :iq
+          :attrs {:from (:server:domain properties)
+                  :id (-> content :attrs :id)
+                  :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                  :type "result"}}]))
+          
 
 (defmethod process [:ping :get "urn:xmpp:ping"]
   [content state]
@@ -108,9 +129,32 @@
                 :from (:server:domain properties)
                 :type "result"}}]))
 
+(defmethod process [:query :get "http://jabber.org/protocol/bytestreams"]
+  [content state]
+  (do (log :debug "Requested bytestreams")
+      [{:tag :iq
+        :attrs {:from "proxy.jabber.org" ;(:server:domain properties)
+                :id (-> content :attrs :id)
+                :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                :type "result"}
+        :content [{:tag :query
+                   :attrs {:xmlns "http://jabber.org/protocol/bytestreams"}
+                   :content [{:tag :streamhost 
+                              :attrs {:jid (:server:domain properties)
+                                      :host "127.0.0.1"
+                                      :port "7777"}}]}]}]))
+
 (defmethod process :default
   [content state]
-  (do (log :debug (str "sent unknown IQ " content))
-      [{:tag :service-unavailable}]))
+  (do (log :info (str "sent unknown IQ " content))
+      [{:tag :iq
+        :attrs {:id (-> content :attrs :id)
+                :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                :type "error"}
+        :content [{:tag :error
+                   :attrs {:code "501"
+                           :type "cancel"}
+                   :content [{:tag :feature-not-implemented
+                              :attrs {:xmlns "urn.ietf.params.xml.ns.xmpp-stanzas"}}]}]}]))
   
 

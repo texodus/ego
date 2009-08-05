@@ -9,8 +9,12 @@
       (is (= (:a @temp-ref)))))
   (testing "process - simple interleave"
     (is (nil? (process :connect "test")))
+    (is (nil? (process :connect "test2")))
     (is (empty? (process :upstream "test" {:state nil, :tag :start-element, :qname "test", :attrs []})))
+    (is (empty? (process :upstream "test2" {:state nil, :tag :start-element, :qname "test", :attrs []})))
     (is (= (process :upstream "test" {:state nil, :tag :end-element, :qname "test", :attrs []})
+           [{:tag :test, :attrs {}, :content nil}]))
+    (is (= (process :upstream "test2" {:state nil, :tag :end-element, :qname "test", :attrs []})
            [{:tag :test, :attrs {}, :content nil}]))
     (is (nil? (process :disconnect "test")))))
 
