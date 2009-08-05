@@ -79,9 +79,9 @@
   </target>
  
   <target name="compile" depends="init, update, compile_java" description="Compile Clojure sources.">
-    <copy file="${src}/ego.properties" todir="${build}" />
+    <!--copy file="${src}/ego.properties" todir="${build}" />
     <copy file="${src}/log4j.properties" todir="${build}" />
-    <copy file="${src}/ego.jks" todir="${build}" />
+    <copy file="${src}/ego.jks" todir="${build}" /-->
     <java classname="clojure.lang.Compile" fork="true">
       <classpath refid="ego.classpath" />
       <sysproperty key="clojure.compile.path" value="${build}"/>
