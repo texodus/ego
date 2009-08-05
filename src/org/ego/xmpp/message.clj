@@ -23,6 +23,7 @@
 
 (defmulti process (fn [content _] (-> content :attrs :type keyword)))
 
+; TODO make sur ethis user is allowed to receive this message
 (defmethod process :chat
   [content state]
   [(assoc-in (assoc-in content [:attrs :id] (gen-id))

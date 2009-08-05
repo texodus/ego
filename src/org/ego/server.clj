@@ -166,8 +166,7 @@
 
 (defn channel-write
   [ip msg]
-  (do (log :debug (str "TEST "ip " : " msg))
-      (. (@connections ip) (write msg))))
+  (. (@connections ip) (write msg)))
 
 (defn start-server
   "Create a new socket server bound to the port, adding the supplied funs 
