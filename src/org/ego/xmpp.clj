@@ -37,8 +37,12 @@
 ;;;; Channel Handler
 
 (def #^{:private true
-        :doc "Collections of open XML element buffers"}
+        :doc "Collections of IPs to streams"}
      xmpp-streams (ref {}))
+
+(def #^{:private true
+        :doc "Map of JIDs to streams"}
+     jid-streams (ref {}))
 
 (defmulti process 
   "Takes msg strings and returns a vector of generated element structs"
@@ -51,16 +55,26 @@
 (defmethod process :disconnect
   [_ ip]
   (dosync (alter-nil xmpp-streams dissoc ip)))
-
+    
 (defmethod process :upstream
   [_ ip msg]
-  (let [[user domain resource] (parse-jid (:to (:attrs msg)))]
-    (log :debug (str "# " user ":" domain ":" resource))
+  (let [stream (@xmpp-streams ip)
+        [user domain resource] (parse-jid (:to (:attrs msg)))]
     (log :debug (str "XMPP --> " msg))
-    (let [return (stream/parse msg (@xmpp-streams ip))]
+    (let [return (stream/parse msg stream)]
       (log :debug (str "XMPP <-- " return))
-        (if (not (nil? return))
-          (server/channel-write return))
-        nil)))
+      (if (not (nil? (:username @stream)))
+        (dosync (alter jid-streams assoc 
+                       (vector (:username @stream) (:server:domain properties))
+                       stream)))
+      (doseq [m return]
+        (let [jid (parse-jid (:to (:attrs m)))]
+          (server/channel-write (if (not (nil? (@jid-streams jid))) 
+                                  (:ip @(@jid-streams jid))
+                                  (if (not (nil? (@jid-streams (take 2 jid))))
+                                    (:ip @(@jid-streams (take 2 jid)))
+                                    ip))
+                                  m)))
+      nil)))
 
 (defmethod process :default [_ ip msg] msg)

@@ -117,7 +117,7 @@
 
 (defmethod process :downstream
   [_ ip msg]
-  (apply str (map emit msg)))
+  (emit msg))
 
 (defmethod process :default [_ ip msg] msg)
 

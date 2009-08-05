@@ -21,32 +21,12 @@
 ;;;;
 ;;;; Process
 
-(defmulti process (fn [content _] [(-> content :content first :tag) 
-                              (-> content :attrs :type keyword)
-                              (-> content :content first :attrs :xmlns)]))
+(defmulti process (fn [content _] (-> content :attrs :type keyword)))
 
-(defmethod process [:bind :set "urn:ietf:params:xml:ns:xmpp-bind"]
+(defmethod process :chat
   [content state]
-  (let [resource (gen-resource (-> content :content :content :content))]
-    (do (log :debug (str "bound to resource " resource))
-        (dosync (alter state assoc :resource resource))
-        [{:tag :iq
-          :attrs {:id (-> content :attrs :id)
-                  :type "result"}
-          :content [{:tag :bind
-                     :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-bind"}
-                     :content [{:tag :resource 
-                                :content [resource]}]}]}])))
-                           
-(defmethod process [:session :set "urn:ietf:params:xml:ns:xmpp-session"]
-  [content state]
-  (do (log :debug "opened session")
-      (dosync (alter state assoc :session true))
-      [{:tag :iq
-        :attrs {:id (-> content :attrs :id)
-                :type "result"}
-        :content [{:tag :session
-                   :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}}]}]))
+  [(assoc-in (assoc-in content [:attrs :id] (gen-id))
+             [:attrs :from] (str (:username @state) "@" (properties :server:domain)))])
 
 (defmethod process :default
   [content state]

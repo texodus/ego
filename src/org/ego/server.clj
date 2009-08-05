@@ -29,6 +29,11 @@
         :doc "Thread-local handle keeps netty conneciton information"}
      *connection*)
 
+(def #^{:private true
+        :doc "Thread-local handle keeps netty conneciton information"}
+     connections (ref {}))
+
+
 (defn- get-channel-handler
   "Generates a netty ChannelHandler given a shared ref to a channel-buffer;  a
    channel-buffer ref is necessary to pass characters from the netty messageReceived
@@ -49,22 +54,22 @@
      [#^ChannelHandlerContext ctx #^DownstreamMessageEvent me]
      (let [msg (binding [*connection* {:ctx ctx :event me}]
                   (fun :downstream (.. me getChannel getRemoteAddress) (. me getMessage)))]
-;       (if (not (empty? msgs))
- ;        (doseq [message msgs]
-           (if (not (nil? msg))
-             (. ctx (sendDownstream (new DownstreamMessageEvent 
-                                         (. me getChannel) 
-                                         (. me getFuture)
-                                         msg 
-                                         (.. me getChannel getRemoteAddress)))))))
+       (if (not (nil? msg))
+         (. ctx (sendDownstream (new DownstreamMessageEvent 
+                                     (. me getChannel) 
+                                     (. me getFuture)
+                                     msg 
+                                     (.. me getChannel getRemoteAddress)))))))
     (channelConnected 
      [#^ChannelHandlerContext ctx #^ChannelStateEvent event] 
-     (do (binding [*connection* {:ctx ctx :event event}]
+     (do (dosync (alter connections assoc (.. event getChannel getRemoteAddress) (. event getChannel))) 
+         (binding [*connection* {:ctx ctx :event event}]
            (fun :connect (.. event getChannel getRemoteAddress)))
          (. ctx (sendUpstream event))))
     (channelDisconnected
      [#^ChannelHandlerContext ctx #^ChannelStateEvent event] 
-     (do (binding [*connection* {:ctx ctx :event event}]
+     (do (dosync (alter connections dissoc (.. event getChannel getRemoteAddress)))
+         (binding [*connection* {:ctx ctx :event event}]
            (fun :disconnect (.. event getChannel getRemoteAddress)))
          (. ctx (sendDownstream event))))))
 
@@ -160,8 +165,9 @@
       nil))
 
 (defn channel-write
-  [msg]
-  (do (.. (:event *connection*) getChannel (write msg))))
+  [ip msg]
+  (do (log :debug (str "TEST "ip " : " msg))
+      (. (@connections ip) (write msg))))
 
 (defn start-server
   "Create a new socket server bound to the port, adding the supplied funs 
