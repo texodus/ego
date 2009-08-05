@@ -29,11 +29,3 @@
       (let [server (server/start-server 5222 xml/process stanza/process xmpp/process)]
         (dosync (ref-set *server* server)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;; REPL
-
-;(defn start-server 
-;  [] 
-;  (let [server (server/create-server 5222 #(xml/parse xmpp/process xmpp/new-stream-state))]
-;    (dosync (ref-set *server* server))))

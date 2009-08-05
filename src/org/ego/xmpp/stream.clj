@@ -21,7 +21,7 @@
 (defmethod parse :stream:stream
   [content state]
   (let [id (gen-id)]
-    (log :info (str (:ip @state) " opened stream " id))
+    (log :info (str "opened stream " id))
     ; Just assume the opening stream request was correct and open our own
     (dosync (alter state assoc :open true :id id))
     [(str "<stream:stream from='" (:server:domain properties)  "' id='" id
@@ -54,7 +54,7 @@
 
 (defmethod parse :starttls
   [content state]
-  (do (log :info (str (:ip @state) " switched to TLS"))
+  (do (log :info "switched to TLS")
       (dosync (alter state assoc :ssl true))
       (try (server/start-tls)
            (catch Exception e (do (log :error "SSL failed" e)
@@ -71,15 +71,15 @@
                     password (apply str (map char (drop 1 (drop-while pos? (drop 1 chars)))))
                     user-id (accounts/login username password)]
                 (if (nil? user-id)
-                  (do (log :info (str (:ip @state) " failed to login as username " username))
+                  (do (log :info (str "failed to login as username " username))
                       [{:tag :failure
                         :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-sasl"}
                         :content [{:tag :temporary-auth-failure}]}])
-                  (do (log :info (str (:ip @state) " logged in successfully as username " username))
+                  (do (log :info (str "logged in successfully as username " username))
                       (dosync (alter state assoc :username username :user-id user-id))
                       [{:tag :success
                         :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-sasl"}}]))))))
 
 (defmethod parse :default
   [content state]
-  (log :warn (str (:ip @state) " sent unknown " content)))
+  (log :warn (str "sent unknown " content)))
