@@ -4,8 +4,7 @@
   (:require [org.ego.server :as server]
             [org.ego.db.accounts :as accounts]
             [org.ego.common :as common])
-  (:use [org.ego.common :only [properties gen-id]]
-        [org.ego.server :only [log]]))
+  (:use [org.ego.common :only [properties gen-id]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -27,6 +26,15 @@
         :doc "Map of JIDs to streams"}
      jid-streams (ref {}))
 
+(defn log
+  [& args]
+  (let [output (if (nil? (:username @(@xmpp-streams (server/get-ip))))
+                 (str (server/get-ip) " " (apply str (rest args)))
+                 (if (nil? (:resource @(@xmpp-streams (server/get-ip))))
+                   (str (:username @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))
+                   (str (:username @(@xmpp-streams (server/get-ip))) "/" (:resource @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))))]
+    (common/log (first args) output)))
+
 (defn parse-jid
   [string]
   (if (empty? string)
@@ -41,7 +49,6 @@
 (defn online?
   [jid]
   (let [[user domain resource] (parse-jid jid)]
-    (log :debug (str "IS " jid " ONLINE!??!"))
     (if (and (= domain (properties :server:domain))
              (@jid-streams [user domain]))
       true
@@ -64,7 +71,6 @@
 (defmethod process :disconnect
   [fun _ ip]
   (do (doseq [msg (fun :disconnect (@xmpp-streams ip))]
-        (log :error msg)
         (let [jid (parse-jid (-> msg :attrs :to))
               ip (if (not (nil? (@jid-streams jid))) 
                    (:ip @(@jid-streams jid))
@@ -72,8 +78,7 @@
                      (:ip @(@jid-streams (take 2 jid)))
                      nil))]
           (if (online? (-> msg :attrs :to))
-            (do (log :error (str "YES " ip " : " msg))
-                (server/channel-write ip msg)))))
+                (server/channel-write ip msg))))
       (dosync (alter-nil jid-streams dissoc (vector (:username @(@xmpp-streams ip)) (:server:domain properties)))
               (alter-nil xmpp-streams dissoc ip))))
               

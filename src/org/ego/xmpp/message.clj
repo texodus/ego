@@ -4,7 +4,7 @@
             [org.ego.server :as server]
             [org.ego.db.accounts :as accounts])
   (:use [org.ego.common :only [properties gen-id]]
-        [org.ego.server :only [log]]))
+        [org.ego.xmpp]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -26,7 +26,11 @@
 ; TODO make sure this user is allowed to receive this message
 (defmethod process :chat
   [content state]
-   (do (log :debug (str "says to " (:to (:attrs content)) " : " (-> content :content first :content first)))
+   (do (let [msg (apply str (for [item (content :content)]
+                              (if (= :body (:tag item))
+                                (first (:content item)))))]
+         (if (not (empty? msg))
+           (log :info (str "says to " (:to (:attrs content)) " : " msg))))
        [(assoc-in (assoc-in content [:attrs :id] (gen-id))
                   [:attrs :from] (str (:username @state) "@" (properties :server:domain)))]))
 

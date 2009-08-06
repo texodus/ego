@@ -4,7 +4,7 @@
             [org.ego.server :as server]
             [org.ego.db.accounts :as accounts])
   (:use [org.ego.common :only [properties gen-id]]
-        [org.ego.server :only [log]]))
+        [org.ego.xmpp ]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -28,7 +28,7 @@
 (defmethod process [:bind :set "urn:ietf:params:xml:ns:xmpp-bind"]
   [content state]
   (let [resource (gen-resource (-> content :content :content :content))]
-    (do (log :debug (str "bound to resource " resource))
+    (do (log :info (str "bound to resource " resource))
         (dosync (alter state assoc :resource resource))
         [{:tag :iq
           :attrs {:id (-> content :attrs :id)

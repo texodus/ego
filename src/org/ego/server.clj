@@ -154,11 +154,6 @@
   []
   (.. (:event *connection*) getChannel getRemoteAddress))
 
-(defn log
-  [& args]
-  (let [output (str (get-ip) " " (apply str (rest args)))]
-    (common/log (first args) output)))
-
 (defn close-channel
   []
   (do (.. (:event *connection*) getChannel close)
