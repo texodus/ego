@@ -89,6 +89,7 @@
        (channelUnbound [#^ChannelHandlerContext ctx  #^ChannelStateEvent cse] nil)
        (childChannelClosed [#^ChannelHandlerContext ctx  #^ChildChannelStateEvent ccse] nil)
        (childChannelOpen [#^ChannelHandlerContext ctx #^ChildChannelStateEvent ccse] nil)
+       (writeRequested [ctx e] (do (common/log :info (. e getMessage)) (. ctx sendDownstream e)))
        (connectRequested [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil) ; shouldnt see this one
        (exceptionCaught [#^ChannelHandlerContext ctx #^ExceptionEvent ee] (common/log :info "Handler error"  (. ee getCause)))
        ; Common/Log and foward these

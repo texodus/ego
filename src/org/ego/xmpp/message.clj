@@ -34,5 +34,3 @@
   [content state]
   (do (log :debug (str "sent unknown IQ " content))
       [{:tag :service-unavailable}]))
-  
-

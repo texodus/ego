@@ -80,6 +80,22 @@
                       [{:tag :success
                         :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-sasl"}}]))))))
 
+(defmethod parse :presence
+  [content state]
+  (loop [friends (accounts/get-friends (:user-id @state))
+         result []]
+    (log :info friends)
+    (if (empty? friends)
+      result
+      (recur (rest friends) (cons {:tag :presence
+                                   :attrs {:from (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                                           :to (first friends)
+                                           :id (gen-id)}}
+                                  result)))))
+                         
+    
+
+
 (defmethod parse :default
   [content state]
   (log :warn (str (:ip @state) " sent unknown " content)))

@@ -74,7 +74,6 @@
                                   (if (not (nil? (@jid-streams (take 2 jid))))
                                     (:ip @(@jid-streams (take 2 jid)))
                                     ip))
-                                  m)))
-      nil)))
+                                  m))))))
 
 (defmethod process :default [_ ip msg] msg)
