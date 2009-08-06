@@ -26,7 +26,7 @@
 ; TODO make sure this user is allowed to receive this message
 (defmethod process :chat
   [content state]
-   (do (log :info (str "says to " (:to (:attrs content)) " : " (-> content :content first :content first)))
+   (do (log :debug (str "says to " (:to (:attrs content)) " : " (-> content :content first :content first)))
        [(assoc-in (assoc-in content [:attrs :id] (gen-id))
                   [:attrs :from] (str (:username @state) "@" (properties :server:domain)))]))
 
