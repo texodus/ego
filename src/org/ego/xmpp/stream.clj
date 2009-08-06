@@ -23,13 +23,12 @@
   [content state]
   (loop [friends (accounts/get-friends (:user-id @state))
          result []]
-    (log :info friends)
     (if (empty? friends)
       result
       (recur (rest friends) (cons {:tag :presence
-                                   :attrs {:from (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                                   :attrs {:from (str (:username @state) "@" (:server:domain properties))
                                            :to (first friends)
-                                           :id (gen-id)
+                                           ;:id (gen-id)
                                            :type "unavailable"}}
                                   result)))))
 

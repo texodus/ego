@@ -64,14 +64,19 @@
 (defmethod process :disconnect
   [fun _ ip]
   (do (doseq [msg (fun :disconnect (@xmpp-streams ip))]
-        (let [jid (parse-jid (-> msg :attrs :to))]
-          (server/channel-write (if (not (nil? (@jid-streams jid))) 
-                                  (:ip @(@jid-streams jid))
-                                  (if (not (nil? (@jid-streams (take 2 jid))))
-                                    (:ip @(@jid-streams (take 2 jid)))
-                                    ip))
-                                msg)))
-      (dosync (alter-nil xmpp-streams dissoc ip))))
+        (log :error msg)
+        (let [jid (parse-jid (-> msg :attrs :to))
+              ip (if (not (nil? (@jid-streams jid))) 
+                   (:ip @(@jid-streams jid))
+                   (if (not (nil? (@jid-streams (take 2 jid))))
+                     (:ip @(@jid-streams (take 2 jid)))
+                     nil))]
+          (if (online? (-> msg :attrs :to))
+            (do (log :error (str "YES " ip " : " msg))
+                (server/channel-write ip msg)))))
+      (dosync (alter-nil jid-streams dissoc (vector (:username @(@xmpp-streams ip)) (:server:domain properties)))
+              (alter-nil xmpp-streams dissoc ip))))
+              
     
 (defmethod process :upstream
   [fun _ ip msg]
