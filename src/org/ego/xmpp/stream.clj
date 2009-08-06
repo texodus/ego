@@ -6,17 +6,32 @@
             [org.ego.xmpp.iq :as iq]
             [org.ego.xmpp.message :as message])
   (:use [org.ego.common :only [properties gen-id]]
-        [org.ego.server :only [log]]))
+        [org.ego.server :only [log]]
+        [org.ego.xmpp]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Process 
 
-(defmulti parse (fn [content _] (:tag content)))
+(defmulti parse (fn [content _] (if (keyword? content) content (:tag content))))
 
 (defmethod parse :iq [content state] (iq/process content state))
 
 (defmethod parse :message [content state] (message/process content state))
+
+(defmethod parse :disconnect
+  [content state]
+  (loop [friends (accounts/get-friends (:user-id @state))
+         result []]
+    (log :info friends)
+    (if (empty? friends)
+      result
+      (recur (rest friends) (cons {:tag :presence
+                                   :attrs {:from (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                                           :to (first friends)
+                                           :id (gen-id)
+                                           :type "unavailable"}}
+                                  result)))))
 
 (defmethod parse :stream:stream
   [content state]
@@ -84,14 +99,20 @@
   [content state]
   (loop [friends (accounts/get-friends (:user-id @state))
          result []]
-    (log :info friends)
     (if (empty? friends)
       result
-      (recur (rest friends) (cons {:tag :presence
-                                   :attrs {:from (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
-                                           :to (first friends)
-                                           :id (gen-id)}}
-                                  result)))))
+      (recur (rest friends) 
+             (concat (filter identity 
+                             [{:tag :presence
+                               :attrs {:from (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                                       :to (first friends)
+                                       :id (gen-id)}}
+                              (if (online? (first friends)) 
+                                {:tag :presence
+                                 :attrs {:to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                                         :from (first friends)
+                                         :id (gen-id)}})])
+                     result)))))
                          
     
 
