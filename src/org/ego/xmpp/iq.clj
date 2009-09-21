@@ -4,7 +4,7 @@
             [org.ego.server :as server]
             [org.ego.db.accounts :as accounts])
   (:use [org.ego.common :only [properties gen-id]]
-        [org.ego.xmpp ]))
+        [org.ego.xmpp]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

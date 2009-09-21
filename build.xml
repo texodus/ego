@@ -1,6 +1,37 @@
-
 <project name="ego" default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
 
+  
+
+  <!-- Generic git command wrapper -->
+  <macrodef name = "git">
+    <attribute name = "command" />
+    <attribute name = "dir" default = "" />
+    <element name = "args" optional = "true" />
+    <sequential>
+      <echo message = "git @{command}" />
+      <exec executable = "git" dir = "@{dir}">
+        <arg value = "@{command}" />
+        <args/>
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <!-- Generic git updating tool -->
+  <macrodef name = "git-clone-pull">
+    <attribute name = "repository" />
+    <attribute name = "dest" />
+    <sequential>
+      <git command = "clone">
+        <args>
+          <arg value = "@{repository}" />
+          <arg value = "@{dest}" />
+        </args>
+      </git>
+      <git command = "pull" dir = "@{dest}" />
+    </sequential>
+  </macrodef>
+
+ 
   <property name="ivy.install.version" value="2.0.0-beta1"/>
   <property name="ivy.jar.dir" value="${basedir}/ivy"/>
   <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
@@ -17,6 +48,8 @@
     <pathelement location="test"/>
   </path>
 
+
+  
   <target name="download-ivy" unless="skip.download">
     <mkdir dir="${ivy.jar.dir}"/>
     <echo message="installing ivy..."/>

@@ -5,7 +5,8 @@
             [org.ego.stanza :as stanza]
             [org.ego.xmpp :as xmpp]
             [org.ego.xmpp.stream :as stream])
-  (:use [org.ego.common :only [properties log]]))
+  (:use [org.ego.common :only [properties]]
+        [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

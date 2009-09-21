@@ -5,7 +5,8 @@
            [org.apache.log4j Logger])
   (:require [org.ego.common :as common]
             [clojure.contrib.sql :as sql])
-  (:use [org.ego.common :only [properties log]]))
+  (:use [org.ego.common :only [properties]]
+        [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

@@ -3,7 +3,8 @@
   (:require [clojure.contrib.lazy-xml :as xml]
             [org.ego.common :as common]
             [org.ego.server :as server])
-  (:use [org.ego.common :only [properties log]]))
+  (:use [org.ego.common :only [properties]]
+        [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

@@ -3,17 +3,13 @@
   (:import [org.apache.commons.codec.binary Base64])
   (:require [org.ego.server :as server]
             [org.ego.db.accounts :as accounts]
-            [org.ego.common :as common])
+            [org.ego.common :as common]
+            [clojure.contrib.logging :as logging])
   (:use [org.ego.common :only [properties gen-id]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
-
-(defmacro alter-nil
-  "Works like alter but returns nil"
-  [& xs]
-  `(do (alter ~@xs) nil))
 
 (defstruct xmpp-stream :open :ssl :id :resource :session :username :user-id :ip)
 (def new-xmpp-stream (struct xmpp-stream false false nil nil true nil nil nil))
@@ -26,6 +22,11 @@
         :doc "Map of JIDs to streams"}
      jid-streams (ref {}))
 
+(defmacro alter-nil
+  "Works like alter but returns nil"
+  [& xs]
+  `(do (alter ~@xs) nil))
+
 (defn log
   [& args]
   (let [output (if (nil? (:username @(@xmpp-streams (server/get-ip))))
@@ -33,7 +34,7 @@
                  (if (nil? (:resource @(@xmpp-streams (server/get-ip))))
                    (str (:username @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))
                    (str (:username @(@xmpp-streams (server/get-ip))) "/" (:resource @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))))]
-    (common/log (first args) output)))
+    (logging/log (first args) output)))
 
 (defn parse-jid
   [string]
@@ -57,8 +58,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Channel Handler
-
-
 
 (defmulti #^{:private true} process 
   "Takes msg strings and returns a vector of generated element structs"

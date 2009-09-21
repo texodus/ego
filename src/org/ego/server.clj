@@ -17,7 +17,8 @@
            [org.jboss.netty.handler.codec.string StringEncoder StringDecoder]
            [org.jboss.netty.handler.codec.frame Delimiters DelimiterBasedFrameDecoder]
            [org.jboss.netty.logging InternalLoggerFactory Log4JLoggerFactory])
-  (:require [org.ego.common :as common]))
+  (:require [org.ego.common :as common])
+  (:use [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -32,7 +33,6 @@
 (def #^{:private true
         :doc "Thread-local handle keeps netty conneciton information"}
      connections (ref {}))
-
 
 (defn- get-channel-handler
   "Generates a netty ChannelHandler given a shared ref to a channel-buffer;  a
@@ -90,15 +90,15 @@
        (childChannelClosed [#^ChannelHandlerContext ctx  #^ChildChannelStateEvent ccse] nil)
        (childChannelOpen [#^ChannelHandlerContext ctx #^ChildChannelStateEvent ccse] nil)
        (connectRequested [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] nil) ; shouldnt see this one
-       (exceptionCaught [#^ChannelHandlerContext ctx #^ExceptionEvent ee] (common/log :info "Handler error"  (. ee getCause)))
-       ; Common/Log and foward these
+       (exceptionCaught [#^ChannelHandlerContext ctx #^ExceptionEvent ee] (log :info "Handler error"  (. ee getCause)))
+       ; Log and foward these
        (channelConnected 
         [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] 
-        (do (common/log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Connected"))
+        (do (log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Connected"))
             (. ctx (sendUpstream cse))))
        (channelDisconnected
         [#^ChannelHandlerContext ctx #^ChannelStateEvent cse] 
-        (do (common/log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Disconnected"))
+        (do (log :info (str "Channel " (.. cse getChannel getRemoteAddress) " Disconnected"))
           ;  (println (.. cse getChannel getRemoteAddress))
             (. ctx (sendUpstream cse))))))
         
@@ -141,14 +141,14 @@
   (let [handler (get-ssl-handler (common/properties :server:keystore)
                                  (common/properties :server:keypassword)
                                  (common/properties :server:certificatepassword))]
-    (common/log :debug (str "Starting SSL Handshake "))
+    (log :debug (str "Starting SSL Handshake "))
     (do (.. (:ctx *connection*) getPipeline (addFirst "ssl" handler))
         (.. handler 
             (handshake (. (:event *connection*) getChannel))
             (addListener (proxy [ChannelFutureListener] []
                            (operationComplete 
                             [future]
-                            (common/log :debug (str "SSL Handshake finished : " (. future isSuccess))))))))))
+                            (log :debug (str "SSL Handshake finished : " (. future isSuccess))))))))))
 
 (defn get-ip
   []
@@ -163,6 +163,15 @@
   [ip msg]
   (. (@connections ip) (write msg)))
 
+(defmacro defhandler
+  "Create a netty ChannelHandler"
+  [name doc-or-handle & handles]
+  (if (string? doc-or-handle)
+    `(def ~(with-meta name (assoc ^name :doc doc-or-handle))
+          (create-handler ~@handles))
+    `(def ~name
+          (create-handler ~doc-or-handle ~@handles))))
+  
 (defn start-server
   "Create a new socket server bound to the port, adding the supplied funs 
    in order to the default pipeline"

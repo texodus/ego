@@ -1,7 +1,8 @@
 (ns org.ego.xml
   (:gen-class)
   (:require [org.ego.server :as server])
-  (:use [org.ego.common :only [properties log]]))
+  (:use [org.ego.common :only [properties]]
+        [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
