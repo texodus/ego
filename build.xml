@@ -1,7 +1,5 @@
 <project name="ego" default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-  
-
   <!-- Generic git command wrapper -->
   <macrodef name = "git">
     <attribute name = "command" />
@@ -30,25 +28,27 @@
       <git command = "pull" dir = "@{dest}" />
     </sequential>
   </macrodef>
-
  
   <property name="ivy.install.version" value="2.0.0-beta1"/>
   <property name="ivy.jar.dir" value="${basedir}/ivy"/>
   <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
   <property name="ivy.dep" value="lib/default"/>
+  <property name="git.deps" value="opt" />
   <property name="build" value="build"/>
   <property name="src" value="src"/>
   <property name="test" value="test"/>
   <property name="dist" value="dist"/>
 
   <path id="ego.classpath">
-    <path refid="ivy.classpath" />
+    <fileset dir="lib">
+      <include name="**/*.jar"/>
+    </fileset>
     <pathelement location="src"/>
     <pathelement location="build"/>
     <pathelement location="test"/>
   </path>
 
-
+  <!-- Dependencies -->
   
   <target name="download-ivy" unless="skip.download">
     <mkdir dir="${ivy.jar.dir}"/>
@@ -69,6 +69,23 @@
     <ivy:cachepath pathid="ivy.classpath" />
   </target>
 
+  <target name="deps" depends="update" description="Check out, compile and dist git deps">
+    <mkdir dir="${git.deps}" />
+
+    <!-- Compojure -->
+    <git-clone-pull repository="git://github.com/weavejester/compojure.git" dest="${git.deps}/compojure" />
+    <ant dir="${git.deps}/compojure" inheritAll="false" target="deps"/>
+    <ant dir="${git.deps}/compojure" inheritAll="false" />
+    <copy file="${git.deps}/compojure/compojure.jar" todir="lib" />
+    <delete file="${git.deps}/compojure/deps/clojure.jar" />
+    <delete file="${git.deps}/compojure/deps/clojure-contrib.jar" />
+    <copy includeemptydirs="false" todir="lib">
+      <fileset dir="${git.deps}/compojure/deps"/>
+    </copy>
+  </target>
+
+  <!-- Clean -->
+
   <target name="clean" description="--> clean the project">
     <delete includeemptydirs="true" quiet="true">
        <fileset dir="${build}"/>
@@ -76,14 +93,14 @@
     <delete dir="${dist}"/>
   </target>
   
-  <target name="clean-ivy" description="--> clean the ivy installation">
+  <target name="clean-deps" depends="install-ivy" description="--> clean the ivy cache">
+    <ivy:cleancache/>
     <delete dir="${ivy.jar.dir}"/>
     <delete dir="lib"/>
+    <delete dir="opt" />
   </target>
-  
-  <target name="clean-cache" depends="install-ivy" description="--> clean the ivy cache">
-    <ivy:cleancache/>
-  </target>
+
+  <!-- Build -->
 
   <target name="init">
     <tstamp/>
@@ -104,18 +121,15 @@
     </javac>
   </target>
 
-  <target name="test" depends="update" description="Compile Clojure sources.">
+  <target name="test" description="Compile Clojure sources.">
     <java classname="clojure.main" fork="true">
       <classpath refid="ego.classpath" />
       <arg value="test/org/ego_test.clj"/>
     </java>
   </target>
  
-  <target name="compile" depends="init, update, compile_java" description="Compile Clojure sources.">
-    <!--copy file="${src}/ego.properties" todir="${build}" />
-    <copy file="${src}/log4j.properties" todir="${build}" />
-    <copy file="${src}/ego.jks" todir="${build}" /-->
-    <java classname="clojure.lang.Compile" fork="true">
+  <target name="compile" depends="init, compile_java" description="Compile Clojure sources.">
+     <java classname="clojure.lang.Compile" fork="true">
       <classpath refid="ego.classpath" />
       <sysproperty key="clojure.compile.path" value="${build}"/>
       <arg value="org.ego.common"/>
