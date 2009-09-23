@@ -132,8 +132,10 @@
      <java classname="clojure.lang.Compile" fork="true">
       <classpath refid="ego.classpath" />
       <sysproperty key="clojure.compile.path" value="${build}"/>
+      <!-- Core -->
       <arg value="org.ego.core.common"/>
       <arg value="org.ego.core.accounts"/>
+      <!-- XMPP -->
       <arg value="org.ego.xmpp.server"/>
       <arg value="org.ego.xmpp.xmpp"/>
       <arg value="org.ego.xmpp.xml"/>
@@ -141,6 +143,7 @@
       <arg value="org.ego.xmpp.iq"/>
       <arg value="org.ego.xmpp.message"/>
       <arg value="org.ego.xmpp.stream"/>
+      <!-- JSON -->
       <arg value="org.ego"/>
     </java>
     

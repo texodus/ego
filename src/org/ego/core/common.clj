@@ -38,4 +38,12 @@
 (defn gen-id [] (. (BigInteger. 50 seed)
                    (toString 32)))
 
-
+(defn copy-file
+  [source dest]
+  (with-open [r (BufferedInputStream. (FileInputStream. source))
+	      w (BufferedOutputStream. (FileOutputStream. dest))]
+    (loop [c (.read r)]
+      (if (neg? c)
+	nil
+	(do (. w write c)
+	    (recur (.read r)))))))

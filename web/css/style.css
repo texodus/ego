@@ -1,0 +1,315 @@
+:focus { outline: 0; }:focus { outline: 0; }
+
+body {
+    font-family: Helvetica, arial,clean,sans-serif;
+    font-size: 0.8em;
+    margin: 0px; 
+    padding: 0px;
+    font-variant: small-caps;
+    background:  #342826 url(/img/header.png) repeat-x 0px 0px;
+
+ 
+  /*  background: #6b6b6b url(/img/gradient.png) scroll repeat-x top right; */
+
+}
+/* footer */
+#footer {
+    border: 0px;
+    border-top: 1px;
+    border-style: solid;
+    border-color: black;
+}
+
+/* header */
+#header {
+    margin: 0px;
+    padding: 0px;
+    padding-top: 17px;
+    padding-left: 85px;
+    width: 100%;
+    height: 20px;
+    border-width: 0px;
+    border-bottom: 1px;
+    border-color: black;
+    border-style: solid;
+}
+
+h1 {
+    font-size: 1.2em;
+    margin-top: 13px;
+    margin-bottom: -8px;
+    font-variant: small-caps;
+}
+
+a:visited {
+    color: #e0d5a7;
+    text-decoration: none;
+}
+
+#login_box {
+    position: absolute;
+    top: 40px;
+    right: 237px;
+    width: 100px;
+
+    font-size: 1.2em;
+    color: #e0d5a7;
+ /*   padding: 20px;  */
+}
+
+#login_box input {
+    width: 100px;
+    background-color: #e0d5a7;
+    border: none;
+}
+
+#login_box .error {
+    text-align: center;
+    color: red;
+}
+
+.login {
+    padding: 10px 0px;;   
+    margin-top: 20px;
+    text-decoration: none;
+    border: none;
+    align: left;
+    font-family: Helvetica, arial,clean,sans-serif;
+    font-size: 1em;
+    color:#e0d5a7; 
+    font-variant: small-caps 
+    background: #000000 ;
+    cursor: pointer;
+}
+
+.admin {
+    top: 27px; 
+    right: 60px;
+    position: absolute;
+}
+
+.admin:hover, .login:hover {
+    color: #c03c13;
+}
+
+#logout_button {
+    position: absolute;
+    right: 10px;
+    top: -3px;
+}
+
+h2 {
+    font-variant: small-caps;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    display: inline;
+    font-size: 1em;
+    letter-spacing: 10px;
+    color: white;
+}
+
+#main_panel {
+    background-color: #000000;
+    font-variant: normal;
+    text-align: justify;
+    text-justify: newspaper;
+    position: absolute;
+    top: 40px;
+    right: 0px;
+    margin-right: 364px;
+    left: 0px;
+    bottom: 0px;
+    overflow: hidden;
+    color: #e0d5a7;
+    padding: 0px 1px 0px 15px;
+    line-height: 1.1em;
+}
+
+#main_panel p {
+    padding-right: 15px;
+}
+
+#app_box {
+    
+}
+
+#menu {
+    position: absolute;
+    top: 10px;
+    left: 140px;
+    right: 190px;
+    height: 25px;
+    padding-top: 6px;
+    padding-bottom: 0px;
+}
+
+#profile_view {
+    height: 40px;
+    margin: 0px 0px 4px 0px;
+}
+
+.avatar img {
+    height: 30px;
+    width: 30px;
+    border: 1px;
+    border-style: solid;
+}
+
+#profile_view div img {
+    border: none;
+    float: left;
+    margin-right: 10px;
+}
+
+#profile_view .email {
+    position: absolute; 
+    top: 5px;
+    left: 50px;
+}
+
+.panel {
+    padding: 10px;
+}
+
+#modal_prefs {
+   margin-right: 15px;
+    background-color: #342826
+
+}
+
+
+#player {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    width: 214px;
+    height: 100px;
+    padding: 0px;
+    padding-top: 28px;
+    background: #342826 url(/img/border-bottom.png) no-repeat 0px 0px;
+
+}
+
+#library {
+    position:absolute;
+    right: 190px;
+    top: 40px;
+    left: 245px;
+    bottom: 190px;
+
+}
+
+#browser_wrapper {
+    position: absolute;
+    padding-top: 5px;
+    right: 214px;
+    width: 150px;
+    top: 40px;
+    bottom: 0px;
+    background-color: #342826;
+
+}
+
+#browser {
+    width: 150px;
+    height: 100%;
+
+    background-color: #342826;
+    overflow: hidden;
+}
+
+
+
+#sidebar {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 214px;
+    bottom: 128px;
+    background: #000000 url(/img/border.png) repeat-y -0px 0px;
+    z-index: 5;
+}
+
+#friends {
+    margin-left: 20px;
+    color: #e0d5a7;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+    width: 180px;
+}
+
+#friends_list {
+    width: 180px;
+    height: 100%;
+color: #e0d5a7;
+}
+
+#friends_list_wrapper {
+    position: absolute;
+    top: 55px;
+    right: 0px;
+    bottom: 135px;
+    width: 190px;
+    z-index: 100;
+}
+
+#friends_list_wrapper .jScrollPaneTrack {
+    float: right;
+}
+
+a.recommend {
+    font-size: 0.8em;
+    color:  #ff4203;
+}
+
+#friends hr {
+    color: black;
+    border: none;
+    background-color: black;
+    height: 1px;
+}
+#ads {
+    position: relative;
+    color: white;
+    margin-left: 20px;
+    background-color: darkblue;
+    text-align: center;
+    width: 125px;
+}
+
+#simplemodal-overlay {
+  background-color:#000;
+  cursor:wait;
+}
+
+#simplemodal-container {
+     color: #e0d5a7;
+  background-color:#342826;
+  border:1px solid #e0d5a7;
+}
+
+#simplemodal-container a.modalCloseImg {
+  background:url(/img/x.png) no-repeat;
+  width:15px;
+  height:15px;
+  display:inline;
+  z-index:3200;
+  position:absolute;
+  top:5px;
+  right:5px;
+  cursor:pointer;
+}
+
+#friends_list p {
+    font-variant: normal;
+    line-height: 1em;
+    width: 150px;
+    background-color: #342826;
+    margin: 0px;
+    padding: 5px;
+}
+
+

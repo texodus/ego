@@ -1,0 +1,147 @@
+#player ul#player_controls {
+	list-style-type:none;
+	padding:0;
+	margin: 0;
+        color:  #c03c13; 
+}
+#player ul#player_controls li {
+	overflow:hidden;
+	text-indent:-9999px;
+}
+#player_play,
+#player_pause {
+	display: block;
+	position: absolute;
+	left:43px;
+	top:25px;
+	width:20px;
+	height:30px;
+	cursor: pointer;
+}
+#player_play {
+	background: url("/img/play.png") 0 0 no-repeat;
+}
+
+#player_prev {
+    display: block;
+    position: absolute;
+    width: 20px; 
+    height: 30px;
+    top: 25px;
+    left: 5px;
+    cursor: pointer;
+    background: url("/img/prev.png") 0 0 no-repeat;
+}
+
+#player_next {
+    display: block;
+    position: absolute;
+    width: 20px; 
+    height: 30px;
+    top: 25px;
+    left: 80px;
+    cursor: pointer;
+    background: url("/img/next.png") 0 0 no-repeat;
+}
+
+#player_pause {
+	background: url("/img/pause.png") no-repeat;
+}
+
+#player_progress {
+	position: absolute;
+	left:5px;
+	top:57px;
+	background-color: #262018;
+	width: 95px;
+	height: 5px;
+}
+#player_progress_load_bar {
+	background-color: #e0d5a7;  /*url("images/bar_load.gif")  top left repeat-x;*/
+	width: 0px;
+	height: 5px;
+	cursor: pointer;
+}
+
+#player_progress_play_bar {
+	background-color: #c03c13; /*url("s/bar_play.gif") top left repeat-x ; */
+	width: 0px;
+	height: 5px;
+}
+#player_volume_min {
+	position: absolute;
+	left:0px;
+	top:32px;
+	background: url("images/spirites.jpg") 0 -170px no-repeat;
+	width:18px;
+	height:15px;
+	cursor: pointer;
+}
+
+#player_volume_max {
+	position: absolute;
+	left:0px;
+	top:32px;
+	background: url("images/spirites.jpg") 0 -186px no-repeat;
+	width:18px;
+	height:15px;
+	cursor: pointer;
+}
+
+#player_volume_bar {
+	position: absolute;
+	left:0px;
+	top:37px;
+	background: url("images/volume_bar.gif") repeat-x top left;
+	width:46px;
+	height:5px;
+	cursor: pointer;
+}
+#player_volume_bar_value {
+	background: url("images/volume_bar_value.gif") repeat-x top left;
+	width:0px;
+	height:5px;
+}
+
+#player_playlist_message {
+        line-height:1em;
+        font-size: 0.8em;
+	position: absolute;
+        height: 65px;
+	left:5px;
+	bottom:0;
+	width:95px;
+	padding: 0px;
+        overflow: hidden;
+        color:  #e0d5a7; 
+}
+.gap {
+    margin-top: 20px;
+}
+#song_title, #artist_name {
+	padding:0;
+	font-weight:bold;
+}
+
+#play_time,
+#total_time {
+	padding-top:.3em;
+	font-size:.7em;
+}
+
+#play_time {
+	float:left;
+}
+
+#total_time {
+	float:right;
+	text-align: right;
+}
+
+#player_cover {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    bottom: 7px;
+    right: 7px;
+}

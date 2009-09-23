@@ -1,0 +1,335 @@
+<html>                                                                  
+    <head>
+        <title>Ego</title>
+        <link rel="stylesheet" href="css/jScrollPane.css" type="text/css" />
+
+        <link rel="stylesheet" href="css/style.css" type="text/css" />
+        <link rel="stylesheet" href="css/player.css" type="text/css" />
+ 
+        <link rel="icon" type="image/png" href="img/favicon.png">
+        
+        <script type="text/javascript" src="js/jquery/jquery-1.3.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.mousewheel.js"></script>
+        <script type="text/javascript" src="js/jquery/jScrollPane.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.simplemodal-1.2.3.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.form.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.jplayer.js"></script>
+        <script type="text/javascript" src="js/friends.js"></script>
+        <script type="text/javascript" src="js/login.js"></script>
+        <script type="text/javascript">
+
+            function friends_response_open(event) {
+                $.modal($("#response_box")).setPosition();
+                $("#contact_name").attr("value", event.currentTarget.id.replace(/contact_/, ""));
+                $("p#contact_title").text("Message " + event.currentTarget.id.replace(/contact_/, ""));
+            };
+
+            function play(id, title, artist) {
+                $("#player_hidden").changeAndPlay("song?id=" + id);
+                $("#song_title").html(title);
+                $("#artist_name").html(artist);
+                $("#player_cover").attr("src", "songimage?id=" + id).show();
+            }
+
+            $(document).ready(function() {
+
+
+            $("#friends_list").jScrollPane();
+      
+            $("#browser").jScrollPane();
+
+            $(window).resize(function() {
+            	    $("#friends_list").jScrollPaneRemove();
+                    $("#friends_list").jScrollPane();
+                      $("#browser").jScrollPaneRemove();
+                    $("#browser").jScrollPane();
+            });
+
+                // Check to see if the user is logged in
+                $.get('login', {}, function(data) {
+                        if (data.status == "success") {
+
+                            friendsStart();
+                            
+                            $("#app_box").fadeIn(500);
+                        } else {
+                            $("#login_box").fadeIn(500);
+                        }
+                }, "json");
+
+                // Registry
+                $("#logout_button").click(function() { 
+                     logoutClick(friendsStop);
+                });
+                $('#login_button').click(function() { loginClick(friendsStart) });
+                
+                $("#admin_button").click(function() {
+                    $("#modal_song").modal().setPosition();
+                });
+
+                $("#song_form").ajaxForm(function() {
+                    $.modal.close();
+                });
+            
+                $('#profile_view').click(function() { 
+                    $('#modal_prefs').modal().setPosition();
+                });
+            
+                $("#profile_view").hover(function() {
+                    $(this).find(".edit").slideDown(200);},
+                  function() {
+                    $(this).find(".edit").slideUp(200);});
+                
+
+                $('#avatar_form').ajaxForm(function() {
+                    $.modal.close();
+                    $('.icon').attr('src', 'avatar?email=slink&amp;refresh=' + Math.floor(Math.random()*1000));
+                });
+
+                $("#response_box_form").ajaxForm(function() {
+                    $.modal.close();
+                });
+
+                $('#player_hidden').jPlayer({
+                    swfPath: "as",
+                    ready: function() {
+                       // $('#player_hidden').change("mp3/preservation.mp3");
+                    }
+                });
+
+                $("#player_prev").click(function() { $("#player_hidden").playHead(0); });
+
+        	$("#player_hidden").jPlayerId("play", "player_play");
+	        $("#player_hidden").jPlayerId("pause", "player_pause");
+	        $("#player_hidden").jPlayerId("loadBar", "player_progress_load_bar");
+	        $("#player_hidden").jPlayerId("playBar", "player_progress_play_bar");
+	        $("#player_hidden").jPlayerId("volumeMin", "player_volume_min");
+	        $("#player_hidden").jPlayerId("volumeMax", "player_volume_max");
+	        $("#player_hidden").jPlayerId("volumeBar", "player_volume_bar");
+	        $("#player_hidden").jPlayerId("volumeBarValue", "player_volume_bar_value");
+
+	        $("#player_hidden").onProgressChange( function(loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
+		    var myPlayedTime = new Date(playedTime);
+		    var ptMin = (myPlayedTime.getMinutes() < 10) ? "0" + myPlayedTime.getMinutes() : myPlayedTime.getMinutes();
+		    var ptSec = (myPlayedTime.getSeconds() < 10) ? "0" + myPlayedTime.getSeconds() : myPlayedTime.getSeconds();
+		    $("#play_time").text(ptMin+":"+ptSec);
+
+		    var myTotalTime = new Date(totalTime);
+	   	    var ttMin = (myTotalTime.getMinutes() < 10) ? "0" + myTotalTime.getMinutes() : myTotalTime.getMinutes();
+		    var ttSec = (myTotalTime.getSeconds() < 10) ? "0" + myTotalTime.getSeconds() : myTotalTime.getSeconds();
+		    $("#total_time").text(ttMin+":"+ttSec);
+            	});
+
+                $.get('songlist', {}, function(data) {
+                    var songlist="";
+                    for (key in data) {
+                        songlist += $('#song').html().replace(/title_key/g, data[key]["title"])
+                                                     .replace(/band_key/g, data[key]["name"])
+                                                     .replace(/image_key/g, "songimage?id=" + data[key]["id"])
+                                                     .replace(/mp3_key/g, data[key]["id"]);                                            
+                    }
+                    $("#browser").html(songlist); 
+                    $("#browser a").hover(function() {
+                                                   $(this).find("img.play").slideDown(200);},
+                                          function() {
+                                                   $(this).find("img.play").slideUp(200);});
+
+                    $("#browser").jScrollPaneRemove();
+                                        
+                    $("#browser").jScrollPane();
+
+                }, "json");
+            });
+       
+        </script>                                                               
+    </head>                                                                 
+    <body>
+      <div style="min-width: 800px; min-height: 380px; width: 100%; height: 100%; position: absolute">
+        <img src="img/logo.png" style="position: absolute; top: 0px; left: 0px;"/>        
+
+        <!-- Login Box -->
+        <div id="login_box" class="panel rounded-black rounded-bottom" style="display: none">
+            <div class="content">
+                <form action="login" method="POST" id="login_form">
+                    email<br/>
+                    <input id="name" name="name" type="text" style="margin-bottom:10px"/><br/>
+                    password</br>
+                    <input id="password" name="password" type="password" style="margin-bottom:12px"/><br/>
+                    <a class="login" id="login_button" href="#">Login</a>
+                    <div class="error" style="display: none"></div>
+                </form>
+            </div>
+        </div>
+        <div id="main_panel">
+
+<!--          <span style="float: right"><br/>May 7th, 2009</span>
+          <h1>(Venues + Bands + Music Fans) - Record Labels = ?</h1>
+          <hr align="left" style="width: 100%; height: 1px; margin-top: 10px; background-color:  #e0d5a7; border: none;"/>-->
+          <div style="margin-left: -15px; margin-top: 0px; margin-right: 0px; overflow: hidden">
+            <img style="position: absolute; top: 40px; left: 5%" src="img/unionpool.png"></img>
+            <img style="position: absolute; top: 120px; left: 20%" src="img/cortomaltese.png"></img>
+            <img style="position: absolute; top: 70px; left: 40%" src="img/hiphop.png"></img>
+            <img style="position: absolute; top: 50px; left: 70%" src="img/slink.png"></img>
+            <img style="margin-left: -15%" src="img/cityscape.png"></img>
+          </div>
+          <h1>Coming Soon</h1>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer id lorem in magna rhoncus laoreet non id metus. Cras blandit ligula quis nibh accumsan vel lacinia magna interdum. Sed convallis porttitor leo vel dapibus. Pellentesque quis nisl in est feugiat tincidunt non et orci. Duis nec massa nisl. Sed fringilla eleifend pulvinar. Aliquam felis tellus, fringilla ut auctor ut, adipiscing id sapien. Ut et orci non urna interdum tristique ac eget leo. Duis tellus quam, fermentum in malesuada quis, aliquam congue est. Mauris auctor fermentum congue. Quisque rutrum semper eros, ut aliquet eros luctus eget. Pellentesque posuere blandit felis, vitae rutrum neque posuere eu. Proin rutrum urna quis arcu luctus sit amet ultrices purus venenatis. Ut viverra ipsum vitae velit lobortis ut ultrices ipsum aliquam. Vivamus sodales consequat lorem, et malesuada elit facilisis vitae. Phasellus id dolor et nibh volutpat accumsan a mattis turpis. Nullam fermentum ultrices fermentum.</p>
+          <p>Cras lectus augue, tempor id auctor eget, pellentesque ac justo. Morbi semper justo et orci semper ac euismod eros imperdiet. Morbi nec tellus tellus. Suspendisse enim dui, tempor a porttitor eu, varius id enim. In molestie nibh at mauris aliquet rutrum. In volutpat augue purus. Nunc sapien leo, fringilla viverra tempus nec, venenatis in dui. Nullam justo nunc, mollis ut porttitor ac, aliquam quis purus. Fusce mollis ornare arcu vel gravida. Vestibulum a dolor orci. Quisque semper sollicitudin nibh, at lobortis elit dapibus eget. Vivamus sodales scelerisque orci imperdiet ullamcorper. Nulla in tortor interdum eros suscipit vulputate. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec tristique semper eros quis ultrices. Mauris tristique elit nec enim dictum egestas. Integer quis risus non justo pharetra luctus. Ut pretium ligula ac elit porta placerat.</p>
+          <p>Nulla commodo enim in nisi scelerisque malesuada. Nulla suscipit viverra lacinia. Praesent accumsan viverra diam, pulvinar placerat tellus egestas at. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aliquam semper velit ut mi bibendum iaculis. Praesent vel turpis elit, nec interdum magna. Nullam urna leo, bibendum non molestie vel, adipiscing at diam. Donec diam urna, tempus ut pulvinar sit amet, interdum in risus. Praesent bibendum ullamcorper odio, non luctus magna elementum at. Phasellus congue, nisl a tincidunt viverra, lectus lectus blandit ipsum, nec mollis metus urna ut leo. Sed felis massa, dapibus et faucibus a, euismod a leo. Proin non dui felis, a egestas diam. Curabitur ut massa sit amet augue pulvinar accumsan non in metus. Vestibulum orci ipsum, scelerisque vitae blandit sit amet, iaculis at turpis. Suspendisse feugiat mi ut turpis ultrices imperdiet. Aliquam erat volutpat. Fusce a est est. Duis iaculis, augue rutrum mollis fringilla, quam quam varius urna, eget fringilla sem elit ac libero. Integer a quam et nisi dignissim lobortis quis quis eros. </p>
+        </div>
+        
+        <!-- Application Box -->
+        <div id="app_box" style="display: none">
+
+
+          <div id="friends_list_wrapper">
+            <div id="friends_list"></div><br/>
+          </div>
+          
+          <div id="browser_wrapper">
+            <div id="browser">
+            </div>
+            
+          </div>
+          <div id="sidebar">
+            <div style="background: url(img/sidebar.png) no-repeat; width: 214px; height: 50px; position: absolute" ></div>
+            <div id="friends" class="panel rounded-black rounded-bottom">
+              <div id="profile">
+                <a id="profile_view" href="#">
+                  <div class="avatar"></div>
+                  <img class="edit" style="border: none; display: none; position: absolute; top: 10px; left: 10px; height: 30px; width: 30px;" src="img/edit-overlay.png"></img> 
+                  <div class="email"></div>
+                </a>
+              </div>
+              <br/>
+              <hr style=" height: 1px; background-color:  #e0d5a7; width: 180px; float: left;" />
+              
+
+            </div>
+            <a class="login" id="logout_button" href="#">Logout</a>
+            <a class="admin" id="admin_button"  href="#">Admin</a> 
+            <br/>
+          </div>
+            
+            <div id="player">
+	      <ul id="player_controls">
+		<li id="player_prev"><a href="#" title="prev"><span>play</span></a></li>
+		<li id="player_next"><a href="#" onClick="$('#jquery_jplayer').play(); return false;" title="next"><span>play</span></a></li>
+		<li id="player_play"><a href="#" onClick="$('#jquery_jplayer').play(); return false;" title="play"><span>play</span></a></li>
+		<li id="player_pause"><a href="#" onClick="$('#jquery_jplayer').pause(); return false;" title="pause"><span>pause</span></a></li>
+		<!--li id="player_stop"><a href="#" onClick="$('#jquery_jplayer').stop(); return false;" title="stop"><span>stop</span></a></li>
+		<li id="player_volume_min"><a href="#" onClick="$('#jquery_jplayer').volume(0); return false;" title="min volume"><span>min volume</span></a></li>
+		<li id="player_volume_max"><a href="#" onClick="$('#jquery_jplayer').volume(100); return false;" title="max volume"><span>max volume</span></a></li-->
+	      </ul>
+	      <div id="player_progress">
+		<div id="player_progress_load_bar">
+		  <div id="player_progress_play_bar"></div>
+		</div>
+	      </div>
+	      <!--"player_volume_bar">
+		<div id="player_volume_bar_value"></div>
+	      </div-->
+	      <div id="player_playlist_message">
+        	<div id="play_time"></div>
+		<div id="total_time"></div>
+	        <div class="gap" id="song_title"></div>
+       	        <div id="artist_name"></div>
+	      </div>
+
+                <img id="player_cover" style="display: none"/>
+
+            </div>
+            
+            <!-- Modal Hidden boxes -->
+          
+            <div id="player_hidden"></div>
+
+            <!-- Widgets! -->
+            <div style="display: none">
+
+              <div id="song">
+                <div style="color: #E0D5A7; padding: 0px 0px 0px 5px; line-height: 0.9em; height: 20px;">
+                  <a href="#" onClick="play(mp3_key, 'title_key', 'band_key')" style="position: relative; height: 30px;">
+                    <img id="song_image" src="image_key" src_bak="image_key" style="border: none; padding-right: 5px; float: left; width: 30px; height: 30px;"></img>
+                    <img class="play" style="border: none; display: none; position: absolute; top: 0px; left: -35px;height: 30px; width: 30px;" src="img/play-overlay.png"></img> 
+                    <span id="song_title_key" style="font-size: 0.8em; color: #e0d5a; overflow: hidden; position: absolute; top: -1px; width: 100px">title_key</span><br/>
+                    <span id="song_band" style="font-size: 0.8em; color:  #c03c13; position: absolute; top: 10px;width: 100px">band_key</span>
+                  </a>
+                </div><br/>
+              </div>
+
+              <div id="modal_prefs" class="panel" style="padding: 20px;">
+                <form action="avatar" method="POST" id="avatar_form">
+                  <div class="avatar" style="float: left; margin-top: 10px;"></div>
+                  <div style="margin-left: 40px">
+                    Avatar<br/>
+                    <input id="avatar_file" name="avatar_file" type="file" style="margin-bottom:10px"/><br/>
+                    <input id="upload_button" type="submit" value="Upload" />
+                    
+                  </div>
+                </form>
+              </div>
+
+              <div id="modal_song" class="panel" style="padding: 20px;">
+                <form action="songupload" method="POST" id="song_form">
+                    Title<br/>
+                    <input id="song_title" name="song_title" type="text" style="margin-bottom:10px"/><br/>
+                    Band<br/>
+                    <input id="song_band" name="song_band" type="text" style="margin-bottom:10px"/><br/>
+                    Album<br/>
+                    <input id="song_album" name="song_album" type="text" style="margin-bottom:10px"/><br/>
+                    Mp3<br/>
+                    <input id="song_file" name="song_file" type="file" style="margin-bottom:10px"/><br/>
+                    Art<br/>
+                    <input id="song_art_file" name="song_art_file" type="file" style="margin-bottom:10px"/><br/>
+                    <input id="song_upload_button" type="submit" value="Upload" />
+                </form>
+              </div>
+
+              
+              <div id="contact" style="margin: -10px 0px -8px 0px;" >
+                <div style="position: relative; height: 30px">
+                  <img style="z-index: 0; border: none; float: left; padding-right: 10px; height:30px; width:30px;" src="avatar?email=xxkey"></img>
+                  <img class="play" style="border: 0px; display: none; position: absolute; top: 0px; left: 0px; height: 30px; width: 30px;" src="img/play-overlay.png"></img> 
+                  <img class="msg" style="border: 0px; display: none; position: absolute; top: 0px; left: 0px; height: 30px; width: 30px;" src="img/msg-overlay.png"></img> 
+                  <span style="position: absolute; top: -5px;">
+                    xxkey
+                  </span>
+                  <br/>
+                    <a class="recommend" href="#" onClick="play(mp3_key, 'title_key', 'band_key')">
+                      <span style="position: absolute; top: 10px;">
+                        title_key
+                      </span>
+                    </a>
+                </div>
+              </div>
+
+              <div id="messages">
+                <img src="img/speech.png" style="z-index: -100; border: none; margin-top: -1px; margin-left: 5px; margin-bottom: -4px"/>
+                xxkey
+              </div>
+
+              <div id="response_box" >
+                <form action="message" method="POST" id="response_box_form" style="padding: 10px 20px;">
+                  <p id="contact_title"></p>
+                  <input id="contact_message" name="contact_message" type="text" style="height: 100px; width: 300px; word-wrap: break-word;" autocomplete="off"></input>
+                  <br/><br/>
+                  <input id="contact_name" type="hidden" name="contact_name" ></input>
+                  <input type="submit" id="response_box_submit" value="Send"></input>
+                </form>
+              </div>
+
+              <div id="contact_link" >
+                <a style="border: none; " class="contact_link_a" onClick="friends_response_open(event)" id="xxkey" href="#">
+                  xxxxkey
+                </a>
+                <div style="height: 5px; width:100px;">
+                  &nbsp;
+                  </div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </body>
+</html>
+
