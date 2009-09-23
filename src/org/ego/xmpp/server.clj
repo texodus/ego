@@ -1,4 +1,4 @@
-(ns org.ego.server
+(ns org.ego.xmpp.server
   (:gen-class)
   (:import [java.net InetAddress InetSocketAddress URL]
            [java.io 
@@ -17,7 +17,7 @@
            [org.jboss.netty.handler.codec.string StringEncoder StringDecoder]
            [org.jboss.netty.handler.codec.frame Delimiters DelimiterBasedFrameDecoder]
            [org.jboss.netty.logging InternalLoggerFactory Log4JLoggerFactory])
-  (:require [org.ego.common :as common])
+  (:require [org.ego.core.common :as common])
   (:use [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

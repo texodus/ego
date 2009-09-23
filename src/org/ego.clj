@@ -1,11 +1,11 @@
 (ns org.ego
   (:gen-class)
-  (:require [org.ego.xml :as xml]
-            [org.ego.server :as server]
-            [org.ego.stanza :as stanza]
-            [org.ego.xmpp :as xmpp]
+  (:require [org.ego.xmpp.xml :as xml]
+            [org.ego.xmpp.server :as server]
+            [org.ego.xmpp.stanza :as stanza]
+            [org.ego.xmpp.xmpp :as xmpp]
             [org.ego.xmpp.stream :as stream])
-  (:use [org.ego.common :only [properties]]
+  (:use [org.ego.core.common :only [properties]]
         [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

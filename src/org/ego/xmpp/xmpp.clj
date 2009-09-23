@@ -1,11 +1,11 @@
-(ns org.ego.xmpp
+(ns org.ego.xmpp.xmpp
   (:gen-class)
   (:import [org.apache.commons.codec.binary Base64])
-  (:require [org.ego.server :as server]
-            [org.ego.db.accounts :as accounts]
-            [org.ego.common :as common]
+  (:require [org.ego.xmpp.server :as server]
+            [org.ego.core.accounts :as accounts]
+            [org.ego.core.common :as common]
             [clojure.contrib.logging :as logging])
-  (:use [org.ego.common :only [properties gen-id]]))
+  (:use [org.ego.core.common :only [properties gen-id]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

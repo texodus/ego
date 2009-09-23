@@ -1,7 +1,7 @@
-(ns org.ego.xml
+(ns org.ego.xmpp.xml
   (:gen-class)
-  (:require [org.ego.server :as server])
-  (:use [org.ego.common :only [properties]]
+  (:require [org.ego.xmpp.server :as server])
+  (:use [org.ego.core.common :only [properties]]
         [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

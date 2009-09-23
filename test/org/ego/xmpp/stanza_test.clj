@@ -1,5 +1,5 @@
-(ns org.ego.stanza-test
-  (:use [org.ego.stanza]
+(ns org.ego.xmpp.stanza-test
+  (:use [org.ego.xmpp.stanza]
         [clojure.contrib.test-is]))
  
 (deftest test-common

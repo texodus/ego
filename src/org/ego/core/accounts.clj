@@ -1,11 +1,11 @@
-(ns org.ego.db.accounts
+(ns org.ego.core.accounts
   (:gen-class)
   (:import [java.net ServerSocket Socket SocketException InetAddress InetSocketAddress URL]
            [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
            [org.apache.log4j Logger])
-  (:require [org.ego.common :as common]
+  (:require [org.ego.core.common :as common]
             [clojure.contrib.sql :as sql])
-  (:use [org.ego.common :only [properties]]
+  (:use [org.ego.core.common :only [properties]]
         [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

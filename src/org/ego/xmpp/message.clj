@@ -1,10 +1,10 @@
 (ns org.ego.xmpp.message
   (:gen-class)
-  (:require [org.ego.common :as common]
-            [org.ego.server :as server]
-            [org.ego.db.accounts :as accounts])
-  (:use [org.ego.common :only [properties gen-id]]
-        [org.ego.xmpp]))
+  (:require [org.ego.core.common :as common]
+            [org.ego.xmpp.server :as server]
+            [org.ego.core.accounts :as accounts])
+  (:use [org.ego.core.common :only [properties gen-id]]
+        [org.ego.xmpp.xmpp]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

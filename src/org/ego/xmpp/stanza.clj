@@ -1,9 +1,9 @@
-(ns org.ego.stanza
+(ns org.ego.xmpp.stanza
   (:gen-class)
   (:require [clojure.contrib.lazy-xml :as xml]
-            [org.ego.common :as common]
-            [org.ego.server :as server])
-  (:use [org.ego.common :only [properties]]
+            [org.ego.core.common :as common]
+            [org.ego.xmpp.server :as server])
+  (:use [org.ego.core.common :only [properties]]
         [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

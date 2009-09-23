@@ -1,12 +1,12 @@
 (ns org.ego.xmpp.stream
   (:gen-class)
   (:import [org.apache.commons.codec.binary Base64])
-  (:require [org.ego.server :as server]
-            [org.ego.db.accounts :as accounts]
+  (:require [org.ego.xmpp.server :as server]
+            [org.ego.core.accounts :as accounts]
             [org.ego.xmpp.iq :as iq]
             [org.ego.xmpp.message :as message])
-  (:use [org.ego.common :only [properties gen-id]]
-        [org.ego.xmpp]))
+  (:use [org.ego.core.common :only [properties gen-id]]
+        [org.ego.xmpp.xmpp]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
