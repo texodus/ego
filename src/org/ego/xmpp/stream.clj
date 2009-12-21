@@ -2,7 +2,7 @@
   (:gen-class)
   (:import [org.apache.commons.codec.binary Base64])
   (:require [org.ego.xmpp.server :as server]
-            [org.ego.core.accounts :as accounts]
+            [org.ego.core.db.accounts :as accounts]
             [org.ego.xmpp.iq :as iq]
             [org.ego.xmpp.message :as message])
   (:use [org.ego.core.common :only [properties gen-id]]

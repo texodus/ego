@@ -6,7 +6,7 @@
             [org.ego.xmpp.xmpp :as xmpp]
             [org.ego.xmpp.stream :as stream])
   (:use [org.ego.core.common :only [properties]]
-        [org.ego.json.servlet :only [ego-servlet]]
+     ;   [org.ego.json.servlet :only [ego-servlet]]
         [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -20,7 +20,7 @@
   (do (log :info "Starting XMPP Server on port 5222")
       (let [server (server/start-server 5222 xml/process stanza/process (xmpp/get-process stream/parse))]
         (dosync (ref-set *server* server)))
-      (log :info "Starting JSON Server on port 8080")
-      (run-server {:port 8080}
-                  "/*"
-                  (servlet ego-servlet))))
+      (log :info "Starting JSON Server on port 8080")))
+   ;   (run-server {:port 8080}
+               ;   "/*"
+                ;  (servlet ego-servlet))))

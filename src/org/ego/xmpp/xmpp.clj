@@ -2,7 +2,7 @@
   (:gen-class)
   (:import [org.apache.commons.codec.binary Base64])
   (:require [org.ego.xmpp.server :as server]
-            [org.ego.core.accounts :as accounts]
+            [org.ego.core.db.accounts :as accounts]
             [org.ego.core.common :as common]
             [clojure.contrib.logging :as logging])
   (:use [org.ego.core.common :only [properties gen-id]]))
@@ -30,10 +30,10 @@
 (defn log
   [& args]
   (let [output (if (nil? (:username @(@xmpp-streams (server/get-ip))))
-                 (str (server/get-ip) " " (apply str (rest args)))
-                 (if (nil? (:resource @(@xmpp-streams (server/get-ip))))
-                   (str (:username @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))
-                   (str (:username @(@xmpp-streams (server/get-ip))) "/" (:resource @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))))]
+    (str (server/get-ip) " " (apply str (rest args)))
+    (if (nil? (:resource @(@xmpp-streams (server/get-ip))))
+      (str (:username @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))
+      (str (:username @(@xmpp-streams (server/get-ip))) "/" (:resource @(@xmpp-streams (server/get-ip))) " " (apply str (rest args)))))]
     (logging/log (first args) output)))
 
 (defn parse-jid
@@ -51,7 +51,7 @@
   [jid]
   (let [[user domain resource] (parse-jid jid)]
     (if (and (= domain (properties :server:domain))
-             (@jid-streams [user domain]))
+      (@jid-streams [user domain]))
       true
       false)))
 
@@ -65,23 +65,23 @@
 
 (defmethod process :connect
   [_ _ ip]
-  (dosync (alter-nil xmpp-streams assoc ip (ref (assoc new-xmpp-stream :ip ip)))))
-  
+(dosync (alter-nil xmpp-streams assoc ip (ref (assoc new-xmpp-stream :ip ip)))))
+
 (defmethod process :disconnect
-  [fun _ ip]
-  (do (doseq [msg (fun :disconnect (@xmpp-streams ip))]
-        (let [jid (parse-jid (-> msg :attrs :to))
-              ip (if (not (nil? (@jid-streams jid))) 
-                   (:ip @(@jid-streams jid))
-                   (if (not (nil? (@jid-streams (take 2 jid))))
-                     (:ip @(@jid-streams (take 2 jid)))
-                     nil))]
-          (if (online? (-> msg :attrs :to))
-                (server/channel-write ip msg))))
-      (dosync (alter-nil jid-streams dissoc (vector (:username @(@xmpp-streams ip)) (:server:domain properties)))
-              (alter-nil xmpp-streams dissoc ip))))
-              
-    
+[fun _ ip]
+(do (doseq [msg (fun :disconnect (@xmpp-streams ip))]
+      (let [jid (parse-jid (-> msg :attrs :to))
+            ip (if (not (nil? (@jid-streams jid)))
+          (:ip @(@jid-streams jid))
+          (if (not (nil? (@jid-streams (take 2 jid))))
+            (:ip @(@jid-streams (take 2 jid)))
+            nil))]
+        (if (online? (-> msg :attrs :to))
+          (server/channel-write ip msg))))
+  (dosync (alter-nil jid-streams dissoc (vector (:username @(@xmpp-streams ip)) (:server:domain properties)))
+    (alter-nil xmpp-streams dissoc ip))))
+
+
 (defmethod process :upstream
   [fun _ ip msg]
   (let [stream (@xmpp-streams ip)
@@ -90,17 +90,17 @@
     (let [return (fun msg stream)]
       (if (not (nil? (:username @stream)))
         (dosync (alter jid-streams assoc 
-                       (vector (:username @stream) (:server:domain properties))
-                       stream)))
+                                   (vector (:username @stream) (:server:domain properties))
+                                   stream)))
       (doseq [m return]
         (let [jid (parse-jid (:to (:attrs m)))]
           (log :debug (str "XMPP <-- " (str m)))
           (server/channel-write (if (not (nil? (@jid-streams jid))) 
-                                  (:ip @(@jid-streams jid))
-                                  (if (not (nil? (@jid-streams (take 2 jid))))
-                                    (:ip @(@jid-streams (take 2 jid)))
-                                    ip))
-                                  m))))))
+            (:ip @(@jid-streams jid))
+            (if (not (nil? (@jid-streams (take 2 jid))))
+              (:ip @(@jid-streams (take 2 jid)))
+              ip))
+            m))))))
 
 (defmethod process :default [_ _ ip msg] msg)
 

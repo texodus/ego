@@ -1,7 +1,7 @@
 (ns org.ego.core.common
   (:gen-class)
-  (:import [java.io FileReader BufferedReader InputStreamReader FileInputStream]
-           [java.security SecureRandom]
+  (:import [java.io FileReader BufferedReader BufferedInputStream BufferedOutputStream FileOutputStream InputStreamReader FileInputStream]
+           [java.security SecureRandom MessageDigest]
 	   [java.util Properties]))
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -47,3 +47,25 @@
 	nil
 	(do (. w write c)
 	    (recur (.read r)))))))
+
+(defn- translate-halfbyte
+  [halfbyte]
+  (if (and (<= 0 halfbyte) (<= halfbyte 9))
+    (char (+ (int \0) halfbyte))
+    (char (+ (int \a) (- halfbyte 10)))))
+
+(defn sha1
+  [text]
+  (let [md (MessageDigest/getInstance "SHA-1")
+        hex (do (.update md (.getBytes text "iso-8859-1") 0 (count text))
+                (.digest md))]
+    (loop [[x & xs] hex
+           result   ""]
+      (if (nil? x)
+        result
+        (recur xs (str result (let [halfbyte (bit-and (bit-shift-right x 4) 0x0F)]
+                                (apply str (map translate-halfbyte [halfbyte (bit-and x 0x0F)])))))))))
+
+
+
+

@@ -171,7 +171,7 @@
           (create-handler ~@handles))
     `(def ~name
           (create-handler ~doc-or-handle ~@handles))))
-  
+
 (defn start-server
   "Create a new socket server bound to the port, adding the supplied funs 
    in order to the default pipeline"

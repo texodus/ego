@@ -1,11 +1,15 @@
-XMPP Server in Clojure
+# ego
 
-INSTALLATION
+FIXME: write description
 
-1) Create a new DB schema from sql/new.sql in Postgresql
-2) Add a user or 3 (see sql/test.sql)
-3) Modify src/ego.properties to user a real Postgresql user, domain, certificate, etc.
-4) ant && cd dist/lib && java -jar ego.jar
+## Usage
 
+FIXME: write
 
+## Installation
 
+FIXME: write
+
+## License
+
+FIXME: write
