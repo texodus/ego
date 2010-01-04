@@ -1,4 +1,4 @@
-(ns org.ego.core.common
+(ns org.ego.common
   (:gen-class)
   (:import [java.io FileReader BufferedReader BufferedInputStream BufferedOutputStream FileOutputStream InputStreamReader FileInputStream]
            [java.security SecureRandom MessageDigest]

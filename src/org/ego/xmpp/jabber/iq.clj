@@ -1,9 +1,9 @@
 (ns org.ego.xmpp.jabber.iq
   (:gen-class)
-  (:require [org.ego.core.common :as common]
+  (:require [org.ego.common :as common]
             [org.ego.xmpp :as server]
             [org.ego.core.db.accounts :as accounts])
-  (:use [org.ego.core.common :only [properties gen-id log]]))
+  (:use [org.ego.common :only [properties gen-id log]]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -83,7 +83,7 @@
 (defmethod process [:query :get "jabber:iq:roster"]
   [content state]
   (let [friends (accounts/get-friends (:user-id @state))]
-     (do (log :debug (str "requested roster [" (apply str (interpose ", " friends)) "]")) 
+    (do (log :debug (str "requested roster [" (apply str (interpose ", " friends)) "]")) 
         [{:tag :iq
           :attrs {:id (-> content :attrs :id)
                   :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))

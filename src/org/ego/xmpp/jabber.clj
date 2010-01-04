@@ -3,10 +3,11 @@
   (:import [org.apache.commons.codec.binary Base64])
   (:require [org.ego.xmpp :as server]
             [org.ego.core.db.accounts :as accounts]
-            [org.ego.core.common :as common]
+            [org.ego.core :as core]
+            [org.ego.common :as common]
             [org.ego.xmpp.jabber.stream :as stream]
             [clojure.contrib.logging :as logging])
-  (:use [org.ego.core.common :only [properties gen-id alter-nil parse-jid log]]))
+  (:use [org.ego.common :only [properties gen-id alter-nil parse-jid log]]))
         
 
 
@@ -65,13 +66,10 @@
                                            (dosync (alter jid-streams assoc 
                                                           (vector (:username @stream) (:server:domain properties))
                                                           stream)))
-                                         (doseq [m return]
-                                           (let [jid (parse-jid (:to (:attrs m)))]
-                                             (log :debug (str "XMPP <-- " (str m)))
-                                             (server/channel-write (if (not (nil? (@jid-streams jid))) 
-                                                                     (:ip @(@jid-streams jid))
-                                                                     (if (not (nil? (@jid-streams (take 2 jid))))
-                                                                       (:ip @(@jid-streams (take 2 jid)))
-                                                                       ip))
-                                                                   m)))))))
-                (downstream [_ msg] msg))
+                                         (doseq [m return] (core/queue ip m))))))
+                (downstream [ip msg] (binding [log (partial log-ip ip)]
+                                     (let [stream (@jabber-streams ip)
+                                           [user domain resource] (parse-jid (:to (:attrs msg)))]
+                                       (log :debug (str "XMPP <-- " msg))
+                                       msg))))
+                                       ;;(stream/emit msg stream)))))

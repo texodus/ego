@@ -3,7 +3,7 @@
   (:require [org.ego.core.common :as common]
             [org.ego.xmpp :as server]
             [org.ego.core.db.accounts :as accounts])
-  (:use [org.ego.core.common :only [properties gen-id log]]))
+  (:use [org.ego.common :only [properties gen-id log]]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

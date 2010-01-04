@@ -5,11 +5,13 @@
             [org.ego.core.db.accounts :as accounts]
             [org.ego.xmpp.jabber.iq :as iq]
             [org.ego.xmpp.jabber.message :as message])
-  (:use [org.ego.core.common :only [properties gen-id parse-jid log]]))
+  (:use [org.ego.common :only [properties gen-id parse-jid log]]))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
-;;;; Process 
+;;;; Parse 
 
 (defmulti parse (fn [content _] (if (keyword? content) content (:tag content))))
 
@@ -115,3 +117,15 @@
 (defmethod parse :default
   [content state]
   (log :warn (str (:ip @state) " sent unknown " content)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;
+;;;; Emit
+
+;(defmulti emit (fn [content & _] (first content)))
+
+;(defmethod emit :presence 
+
+
