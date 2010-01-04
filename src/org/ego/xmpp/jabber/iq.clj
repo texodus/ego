@@ -1,10 +1,9 @@
-(ns org.ego.xmpp.iq
+(ns org.ego.xmpp.jabber.iq
   (:gen-class)
   (:require [org.ego.core.common :as common]
-            [org.ego.xmpp.server :as server]
+            [org.ego.xmpp :as server]
             [org.ego.core.db.accounts :as accounts])
-  (:use [org.ego.core.common :only [properties gen-id]]
-        [org.ego.xmpp.xmpp]))
+  (:use [org.ego.core.common :only [properties gen-id log]]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,9 +72,9 @@
                           :attrs {:category "server"
                                   :name "Ego Server"
                                   :type "im"}}
-                    ;     {:tag :identity
-                     ;     :attrs {:category "component"
-                      ;            :type "presence"}}
+                         ;; {:tag :identity
+                         ;;  :attrs {:category "component"
+                         ;;          :type "presence"}}
                          {:tag :feature
                           :attrs {:var "jabber:iq:roster"}}
                          {:tag :feature

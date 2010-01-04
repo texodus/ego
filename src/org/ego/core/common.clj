@@ -2,7 +2,8 @@
   (:gen-class)
   (:import [java.io FileReader BufferedReader BufferedInputStream BufferedOutputStream FileOutputStream InputStreamReader FileInputStream]
            [java.security SecureRandom MessageDigest]
-	   [java.util Properties]))
+	   [java.util Properties])
+  (:require [clojure.contrib.logging :as logging]))
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -32,6 +33,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Misc.
+
+(defn log
+  [lvl msg]
+  (logging/log lvl msg))
 
 (def #^{:private true} seed (new SecureRandom))
 
@@ -65,6 +70,22 @@
         result
         (recur xs (str result (let [halfbyte (bit-and (bit-shift-right x 4) 0x0F)]
                                 (apply str (map translate-halfbyte [halfbyte (bit-and x 0x0F)])))))))))
+
+(defmacro alter-nil
+  "Works like alter but returns nil"
+  [& xs]
+  `(do (alter ~@xs) nil))
+
+(defn parse-jid
+  [string]
+  (if (empty? string)
+    (vector nil nil nil)
+    (if (. string (contains "@"))
+    (let [parts (. string (split "@"))]
+      (if (. (second parts) (contains "/"))
+        (cons (first parts) (. (second parts) (split "/")))
+        (vector (first parts) (second parts) nil)))
+    (vector nil string nil))))
 
 
 

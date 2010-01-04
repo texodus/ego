@@ -4,6 +4,8 @@
   (:use [org.ego.core.common :only [properties]]
         [clojure.contrib.logging :only [log]]))
 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
@@ -17,6 +19,8 @@
   "Works like alter but returns nil"
   [& xs]
   `(do (alter ~@xs) nil))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -63,13 +67,13 @@
     (condp = c
       \> (alter element assoc :state nil)                                           ; this is the end of a start-element
       \  (alter-nil element assoc :state :between)                                  ; qname is finished, switching to attr-name
-      \/ (alter element assoc :tag :start-element, :state :must-end)              ; qname is finished, switching to must-terminate
+      \/ (alter element assoc :tag :start-element, :state :must-end)                ; qname is finished, switching to must-terminate
       (alter-nil element assoc :qname (str (:qname @element) c))))                  ; more qname characters
   
 (defmethod parse :between                                                           ; between xml terms
   [element c]
   (condp = c
-    \/ (alter element assoc :tag :start-element, :state :must-end)                ; element is finished, switch to must-terminate
+    \/ (alter element assoc :tag :start-element, :state :must-end)                  ; element is finished, switch to must-terminate
     \  nil                                                                          ; no-op
     \> (alter element assoc :state nil)                                             ; end of element
     (alter-nil element assoc                                                        ; first attr-name character
@@ -79,7 +83,7 @@
  (defmethod parse :must-end                                                         ; parsed a / but not terminated
    [element c]
    (if (= c \>)
-     (alter element assoc :tag :end-element :state nil)                                               ; parsed a / but not terminated
+     (alter element assoc :tag :end-element :state nil)                             ; parsed a / but not terminated
      (alter element assoc :state nil :tag :malformed)))                             ; malformed
 
 (defmethod parse :attr-name                                                         ; element is malformed
@@ -112,33 +116,21 @@
   [element c]
   (dosync (alter element assoc :state nil :tag :malformed)))
 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Channel Handler
 
-(def #^{:private true
-        :doc "Collections of open XML element buffers"}
-     elements (ref {}))
+(def #^{:private true} elements (ref {}))
 
-(defmulti process 
-  "Takes msg strings and returns a vector of generated element structs"
-  (fn [event & _]  event))
-
-(defmethod process :connect
-  [_ ip]
-  (dosync (alter-nil elements assoc ip (ref (struct element nil nil nil [])))))
-  
-(defmethod process :disconnect
-  [_ ip]
-  (dosync (alter-nil elements dissoc ip)))
-
-(defmethod process :upstream
-  [_ ip msg]
-  (let [element (@elements ip)]
-    (dosync (loop [tokens msg return []]
-              (if (not (empty? tokens))
-                (recur (rest tokens)
-                       (conj return (parse element (first tokens))))
-                (filter identity return))))))
-
-(defmethod process :default [_ ip msg] msg)
+(deftype XML []
+  server/Server (connect [ip] (dosync (alter-nil elements assoc ip (ref (struct element nil nil nil [])))))
+                (disconnect [ip] (dosync (alter-nil elements dissoc ip)))
+                (upstream [ip msg] (let [element (@elements ip)]
+                                     (dosync (loop [tokens msg return []]
+                                               (if (not (empty? tokens))
+                                                 (recur (rest tokens)
+                                                        (conj return (parse element (first tokens))))
+                                                 (filter identity return))))))
+                (downstream [ip msg] msg))

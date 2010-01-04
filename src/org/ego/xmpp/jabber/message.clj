@@ -1,10 +1,9 @@
-(ns org.ego.xmpp.message
+(ns org.ego.xmpp.jabber.message
   (:gen-class)
   (:require [org.ego.core.common :as common]
-            [org.ego.xmpp.server :as server]
+            [org.ego.xmpp :as server]
             [org.ego.core.db.accounts :as accounts])
-  (:use [org.ego.core.common :only [properties gen-id]]
-        [org.ego.xmpp.xmpp]))
+  (:use [org.ego.core.common :only [properties gen-id log]]))
  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

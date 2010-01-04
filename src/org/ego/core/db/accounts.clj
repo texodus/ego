@@ -63,6 +63,11 @@
         (redis/lpush "userid:1:friendids" "wilfred@localhost")
         (redis/lpush "userid:1:friendids" "dave@localhost"))))
 
+; TODO implement this!
+(defn online?
+  [& args]
+  true)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; SQL

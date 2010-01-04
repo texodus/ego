@@ -1,12 +1,11 @@
-(ns org.ego.xmpp.stream
+(ns org.ego.xmpp.jabber.stream
   (:gen-class)
   (:import [org.apache.commons.codec.binary Base64])
-  (:require [org.ego.xmpp.server :as server]
+  (:require [org.ego.xmpp :as server]
             [org.ego.core.db.accounts :as accounts]
-            [org.ego.xmpp.iq :as iq]
-            [org.ego.xmpp.message :as message])
-  (:use [org.ego.core.common :only [properties gen-id]]
-        [org.ego.xmpp.xmpp]))
+            [org.ego.xmpp.jabber.iq :as iq]
+            [org.ego.xmpp.jabber.message :as message])
+  (:use [org.ego.core.common :only [properties gen-id parse-jid log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -43,12 +42,12 @@
      {:tag :stream:features
       :content (filter identity
                        ; Only offer SSL if connection is in plaintext
-                       [(if (not (state :ssl))
+                       [(if (not (:ssl @state))
                           {:tag :starttls
                            :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-tls"}
                            :content [{:tag :required}]})
                         ; Only offer authentication if the user is not authenticated
-                        (if (nil? (state :username))
+                        (if (nil? (:username @state))
                           {:tag :mechanisms
                            :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-sasl"}
                            :content [{:tag :mechanism
@@ -61,18 +60,18 @@
                           {:tag :bind
                            :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-bind"}
                            :content [{:tag :required}]})
-                        (if (not (nil? (state :username)))
+                        (if (not (nil? (:username @state)))
                           {:tag :session
                            :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-session"}
                            :content [{:tag :optional}]})])}]))
 
 (defmethod parse :starttls
   [content state]
-  (do (log :info "switched to TLS")
+  (do (log :info (str "switched to TLS" state))
       (dosync (alter state assoc :ssl true))
-      (try (server/start-tls)
+      (try (server/start-tls (:ip @state))
            (catch Exception e (do (log :error "SSL failed" e)
-                                  (server/close-channel))))
+                                  (server/close-channel (:ip @state)))))
       [{:tag :proceed
         :attrs {:xmlns "urn:ietf:params:xml:ns:xmpp-tls"}}]))
 
@@ -106,16 +105,13 @@
                                :attrs {:from (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
                                        :to (first friends)
                                        :id (gen-id)}}
-                              (if (online? (first friends)) 
+                              (if (accounts/online? (first friends)) 
                                 {:tag :presence
                                  :attrs {:to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
                                          :from (first friends)
                                          :id (gen-id)}})])
                      result)))))
                          
-    
-
-
 (defmethod parse :default
   [content state]
   (log :warn (str (:ip @state) " sent unknown " content)))
