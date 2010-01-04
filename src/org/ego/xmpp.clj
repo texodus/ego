@@ -177,5 +177,3 @@
   "Stop the supplied server"
   [server]
   (. server close))
-
-

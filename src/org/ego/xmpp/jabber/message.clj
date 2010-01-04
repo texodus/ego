@@ -25,7 +25,7 @@
 ; TODO make sure this user is allowed to receive this message
 (defmethod process :chat
   [content state]
-   (do (let [msg (apply str (for [item (content :content)]
+   (do (let [msg (apply str (for [item (:content content)]
                               (if (= :body (:tag item))
                                 (first (:content item)))))]
          (if (not (empty? msg))

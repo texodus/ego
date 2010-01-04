@@ -98,27 +98,25 @@
 
 (defmethod process [:vCard :get "vcard-temp"]
   [content state]
- ; (let [friends (accounts/get-friends (:user-id @state))]
-    (do (log :debug "requested vcard")
-        [{:tag :iq
-          :attrs {:from (:server:domain properties)
-                  :id (-> content :attrs :id)
-                  :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
-                  :type "result"}
-          :content [{:tag :vCard
-                     :attrs {:xmlns "vcard-temp"}
-                     :content ["THIS IS A TEMP vCard"]}]}]))
+  (do (log :debug "requested vcard")
+      [{:tag :iq
+        :attrs {:from (:server:domain properties)
+                :id (-> content :attrs :id)
+                :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                :type "result"}
+        :content [{:tag :vCard
+                   :attrs {:xmlns "vcard-temp"}
+                   :content ["THIS IS A TEMP vCard"]}]}]))
 
 (defmethod process [:vCard :set "vcard-temp"]
   [content state]
- ; (let [friends (accounts/get-friends (:user-id @state))]
-    (do (log :debug "set vcard")
-        [{:tag :iq
-          :attrs {:from (:server:domain properties)
-                  :id (-> content :attrs :id)
-                  :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
-                  :type "result"}}]))
-          
+  (do (log :debug "set vcard")
+      [{:tag :iq
+        :attrs {:from (:server:domain properties)
+                :id (-> content :attrs :id)
+                :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
+                :type "result"}}]))
+
 
 (defmethod process [:ping :get "urn:xmpp:ping"]
   [content state]
