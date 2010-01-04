@@ -9,6 +9,7 @@
   (:use [org.ego.core.common :only [properties gen-id alter-nil parse-jid log]]))
         
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
@@ -35,6 +36,8 @@
                    (str (:username @(@jabber-streams ip)) "/" (:resource @(@jabber-streams ip)) " " (apply str (rest args)))))]
     (logging/log (first args) output)))
 
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Server implementation
@@ -56,7 +59,7 @@
                 (upstream [ip msg] (binding [log (partial log-ip ip)]
                                      (let [stream (@jabber-streams ip)
                                            [user domain resource] (parse-jid (:to (:attrs msg)))]
-                                       (log :debug (str "XMPP --> " msg))
+                                       (log :debug (str "XMPP --> " (into {} msg)))
                                        (let [return (stream/parse msg stream)]
                                          (if (not (nil? (:username @stream)))
                                            (dosync (alter jid-streams assoc 

@@ -135,7 +135,7 @@
         handler (get-ssl-handler (common/properties :server:keystore)
                                  (common/properties :server:keypassword)
                                  (common/properties :server:certificatepassword))]
-    (log :debug (str "Starting SSL Handshake "))
+    (log :debug (str "Starting SSL Handshake for " ip))
     (do (.. (:context conn) getPipeline (addFirst "ssl" handler))
         (.. handler 
             (handshake (:channel conn))
