@@ -6,6 +6,7 @@
   (:use [org.ego.common :only [properties gen-id log]]))
  
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
 ;;;; Common
@@ -15,6 +16,8 @@
   (if (nil? string)
     (str "Home_" (gen-id))
     (str string "_" (gen-id))))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -106,7 +109,7 @@
                 :type "result"}
         :content [{:tag :vCard
                    :attrs {:xmlns "vcard-temp"}
-                   :content ["THIS IS A TEMP vCard"]}]}]))
+                   :content ["TODO : Implement VCards"]}]}]))
 
 (defmethod process [:vCard :set "vcard-temp"]
   [content state]
@@ -116,7 +119,6 @@
                 :id (-> content :attrs :id)
                 :to (str (:username @state) "@" (:server:domain properties) "/" (:resource @state))
                 :type "result"}}]))
-
 
 (defmethod process [:ping :get "urn:xmpp:ping"]
   [content state]

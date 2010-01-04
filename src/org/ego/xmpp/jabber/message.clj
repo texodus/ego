@@ -1,10 +1,11 @@
 (ns org.ego.xmpp.jabber.message
   (:gen-class)
-  (:require [org.ego.core.common :as common]
+  (:require [org.ego.common :as common]
             [org.ego.xmpp :as server]
             [org.ego.core.db.accounts :as accounts])
   (:use [org.ego.common :only [properties gen-id log]]))
  
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -15,6 +16,8 @@
   (if (nil? string)
     (str "Home_" (gen-id))
     (str string "_" (gen-id))))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

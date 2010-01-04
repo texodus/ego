@@ -3,10 +3,10 @@
   (:import [java.net ServerSocket Socket SocketException InetAddress InetSocketAddress URL]
            [java.io InputStreamReader OutputStreamWriter PushbackReader ByteArrayInputStream Reader Writer OutputStream FileInputStream]
            [org.apache.log4j Logger])
-  (:require [org.ego.core.common :as common]
+  (:require [org.ego.common :as common]
             [clojure.contrib.sql :as sql]
             [redis])
-  (:use [org.ego.core.common :only [properties]]
+  (:use [org.ego.common :only [properties]]
         [clojure.contrib.logging :only [log]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

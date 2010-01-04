@@ -1,59 +1,59 @@
-    /**
+/**
      * Login Method
      */
-    function login(fn) {
+function login(fn) {
 
-        $("#login_box").fadeOut(500, function() {
-            $("#app_box").fadeIn(500, function() {
-                    $("#browser").jScrollPaneRemove();
-                    $("#browser").jScrollPane();
-              });
-        })
-                
+    $("#login_box").fadeOut(500, function() {
+        $("#app_box").fadeIn(500, function() {
+            $("#browser").jScrollPaneRemove();
+            $("#browser").jScrollPane();
+        });
+    })
+    
 
 
-        fn();
+    fn();
 
-    }
+}
 
-    /**
+/**
      * Logout Method
      */
-    function logout(fn) {
+function logout(fn) {
 
-        $("#app_box").fadeOut(500, function() {
-           $("#login_box").fadeIn(500);
-        });
+    $("#app_box").fadeOut(500, function() {
+        $("#login_box").fadeIn(500);
+    });
 
-        fn();
-    }
+    fn();
+}
 
-    /**
+/**
      * Login Click
      */
-    function loginClick(fn) {
+function loginClick(fn) {
 
-      $.post('login', { name: $('#name').val(),  password: $('#password').val() },
-             function(data) {
+    $.post('login', { name: $('#name').val(),  password: $('#password').val() },
+           function(data) {
                if (data.status == "success") {
-                 
-                 // Login Succeeded
-                 login(fn);
+                   
+                   // Login Succeeded
+                   login(fn);
                } else {
-                 
-                 // Login Failed
-                 $(".error").html("<br/>Login Failed").slideDown();
-                 
-                 setTimeout(function() {
-                     $(".error").slideUp();
+                   
+                   // Login Failed
+                   $(".error").html("<br/>Login Failed").slideDown();
+                   
+                   setTimeout(function() {
+                       $(".error").slideUp();
                    }, 2000);
                }
-             }, "json");
-    }
+           }, "json");
+}
 
-    function logoutClick(fn) {
-        $.get('logout', {},
-            function() {
-                logout(fn);
-            });
-    };
+function logoutClick(fn) {
+    $.get('logout', {},
+          function() {
+              logout(fn);
+          });
+};

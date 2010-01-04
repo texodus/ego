@@ -27,7 +27,6 @@
         :doc "Map of JIDs to streams"}
      jid-streams (ref {}))
 
-
 (defn log-ip
   [ip & args]
   (let [output (if (nil? (:username @(@jabber-streams ip)))
@@ -72,4 +71,4 @@
                                            [user domain resource] (parse-jid (:to (:attrs msg)))]
                                        (log :debug (str "XMPP <-- " msg))
                                        msg))))
-                                       ;;(stream/emit msg stream)))))
+                                       ;;(stream/emit msg stream))))) TODO should delegate to routing

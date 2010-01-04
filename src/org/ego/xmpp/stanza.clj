@@ -1,10 +1,12 @@
 (ns org.ego.xmpp.stanza
   (:gen-class)
   (:require ;[clojure.contrib.lazy-xml :as xml]
-            [org.ego.core.common :as common]
+            [org.ego.common :as common]
             [org.ego.xmpp :as server])
   (:use [org.ego.common :only [properties]]
         [clojure.contrib.logging :only [log]]))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -39,6 +41,8 @@
                              (emit c)))
                 (str "</" (name (:tag e)) ">"))
            "/>"))))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;
@@ -90,6 +94,8 @@
           (let [#^StringBuilder sb (:sb @stanza)]
             (. sb (append (:qname el)))
             (alter-nil stanza assoc :state :chars))))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;

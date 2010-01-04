@@ -4,7 +4,7 @@
             [org.ego.xmpp :as server]
             [org.ego.xmpp.stanza :as stanza]
             [org.ego.xmpp.jabber :as jabber])
-  (:use [org.ego.core.common :only [properties]]
+  (:use [org.ego.common :only [properties]]
      ;  [org.ego.json.servlet :only [ego-servlet]]
         [clojure.contrib.logging :only [log]]))
 
